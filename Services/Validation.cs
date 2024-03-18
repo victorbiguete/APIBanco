@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 namespace APIBanco.Services
 {
-    public abstract class Servicos
+    public abstract class Validation
     {
         public static string VerificarVazio()
         {
