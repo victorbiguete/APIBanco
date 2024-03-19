@@ -36,6 +36,100 @@ public class TransactionsController : ControllerBase
         return transactions;
     }
 
+    [HttpGet(template: "date")]
+    [ProducesResponseType(type: typeof(List<TransactionResponseDto>), statusCode: StatusCodes.Status200OK)]
+    [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
+    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<List<TransactionResponseDto>>> GetByDate([FromQuery(Name = "g")] DateTime GreaterThen, [FromQuery(Name = "l")] DateTime? LessThen)
+    {
+        if (GreaterThen == null)
+        {
+            return BadRequest(error: "GreaterThen cannot be null");
+        }
+
+        List<Transactions>? transactions = await _transactionsService.GetByDate(GreaterThen: GreaterThen, LessThen: LessThen);
+        List<TransactionResponseDto>? response = _mapper.Map<List<TransactionResponseDto>>(source: transactions);
+        return Ok(response);
+    }
+
+    [HttpGet(template: "date10days")]
+    [ProducesResponseType(type: typeof(List<TransactionResponseDto>), statusCode: StatusCodes.Status200OK)]
+    [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
+    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<List<TransactionResponseDto>>> GetByDateTenDays()
+    {
+        DateTime GreaterThen = DateTime.Now.AddDays(value: -10);
+        DateTime? LessThen = null;
+
+        List<Transactions>? transactions = await _transactionsService.GetByDate(GreaterThen: GreaterThen, LessThen: LessThen);
+        List<TransactionResponseDto>? response = _mapper.Map<List<TransactionResponseDto>>(source: transactions);
+        return Ok(response);
+    }
+
+
+    [HttpGet(template: "date30days")]
+    [ProducesResponseType(type: typeof(List<TransactionResponseDto>), statusCode: StatusCodes.Status200OK)]
+    [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
+    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<List<TransactionResponseDto>>> GetByDateThirtyDays()
+    {
+        DateTime GreaterThen = DateTime.Now.AddDays(value: -30);
+        DateTime? LessThen = null;
+
+        List<Transactions>? transactions = await _transactionsService.GetByDate(GreaterThen: GreaterThen, LessThen: LessThen);
+        List<TransactionResponseDto>? response = _mapper.Map<List<TransactionResponseDto>>(source: transactions);
+        return Ok(response);
+    }
+
+    // ////////////////////////////
+
+    [HttpGet(template: "{cpf}/date")]
+    [ProducesResponseType(type: typeof(List<TransactionResponseDto>), statusCode: StatusCodes.Status200OK)]
+    [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
+    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<List<TransactionResponseDto>>> GetByDate(int cpf, [FromQuery(Name = "g")] DateTime GreaterThen, [FromQuery(Name = "l")] DateTime? LessThen)
+    {
+        if (GreaterThen == null)
+        {
+            return BadRequest(error: "GreaterThen cannot be null");
+        }
+
+        List<Transactions>? transactions = await _transactionsService.GetByDate(cpf: cpf, GreaterThen: GreaterThen, LessThen: LessThen);
+        List<TransactionResponseDto>? response = _mapper.Map<List<TransactionResponseDto>>(source: transactions);
+        return Ok(response);
+    }
+
+    [HttpGet(template: "{cpf}/date10days")]
+    [ProducesResponseType(type: typeof(List<TransactionResponseDto>), statusCode: StatusCodes.Status200OK)]
+    [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
+    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<List<TransactionResponseDto>>> GetByDateTenDays(int cpf)
+    {
+        DateTime GreaterThen = DateTime.Now.AddDays(value: -10);
+        DateTime? LessThen = null;
+
+        List<Transactions>? transactions = await _transactionsService.GetByDate(cpf: cpf, GreaterThen: GreaterThen, LessThen: LessThen);
+        List<TransactionResponseDto>? response = _mapper.Map<List<TransactionResponseDto>>(source: transactions);
+        return Ok(response);
+    }
+
+
+    [HttpGet(template: "{cpf}/date30days")]
+    [ProducesResponseType(type: typeof(List<TransactionResponseDto>), statusCode: StatusCodes.Status200OK)]
+    [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
+    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<List<TransactionResponseDto>>> GetByDateThirtyDays(int cpf)
+    {
+        DateTime GreaterThen = DateTime.Now.AddDays(value: -30);
+        DateTime? LessThen = null;
+
+        List<Transactions>? transactions = await _transactionsService.GetByDate(cpf: cpf, GreaterThen: GreaterThen, LessThen: LessThen);
+        List<TransactionResponseDto>? response = _mapper.Map<List<TransactionResponseDto>>(source: transactions);
+        return Ok(response);
+    }
+
+    // /////////////////////////////
+
     [HttpGet(template: "{cpf}")]
     [ProducesResponseType(type: typeof(List<TransactionResponseDto>), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]

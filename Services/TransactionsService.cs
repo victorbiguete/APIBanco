@@ -72,15 +72,42 @@ public class TransactionsService
         return transaction;
     }
 
-    // public async Task GetByDate(DateTime GreterThen, DateTime LessThen){
+    public async Task<List<Transactions>> GetByDate(DateTime GreaterThen, DateTime? LessThen)
+    {
 
-    //     FilterDefinition<Transactions>? filter = Builders<Transactions>.Filter.And(
-    //         Builders<Transactions>.Filter.Gte("Date", GreterThen),
-    //         Builders<Transactions>.Filter.Lte("Date", LessThen)
-    //     );
+        if (LessThen == null)
+        {
+            LessThen = DateTime.Now;
+        }
 
-    //     var res = _transactions.Find(Builders<Transactions>.Filter.Eq("Date", DateTime.Now));
-    // }
+        FilterDefinition<Transactions>? filter = Builders<Transactions>.Filter.And(
+            Builders<Transactions>.Filter.Gte(field: "Date", value: GreaterThen),
+            Builders<Transactions>.Filter.Lte(field: "Date", value: LessThen)
+        );
+
+        List<Transactions>? res = await _transactions.Find(filter: filter).ToListAsync();
+
+        return res;
+    }
+
+    public async Task<List<Transactions>> GetByDate(int cpf, DateTime GreaterThen, DateTime? LessThen)
+    {
+
+        if (LessThen == null)
+        {
+            LessThen = DateTime.Now;
+        }
+
+        FilterDefinition<Transactions>? filter = Builders<Transactions>.Filter.And(
+            Builders<Transactions>.Filter.Gte(field: "Date", value: GreaterThen),
+            Builders<Transactions>.Filter.Lte(field: "Date", value: LessThen),
+            Builders<Transactions>.Filter.Eq(field: "Cpf", value: cpf)
+        );
+
+        List<Transactions>? res = await _transactions.Find(filter: filter).ToListAsync();
+
+        return res;
+    }
 
 
 }
