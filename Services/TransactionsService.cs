@@ -102,7 +102,6 @@ public class TransactionsService
         IEnumerable<BankAccount>? bankAccountSource = await _bankAccountService.GetAsync(Cpf: Source);
         IEnumerable<BankAccount>? bankAccountTarget = await _bankAccountService.GetAsync(Cpf: Target);
 
-
         bankAccountSource.First().Transfer(destiny: bankAccountTarget.First(), value: Transaction.Value);
 
         await _bankAccountService.UpdateAsync(bankAccount: bankAccountSource.First());

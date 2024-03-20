@@ -42,16 +42,21 @@ public class BankAccount
         this.Status = AccountStatus.Active;
     }
 
-    public bool Deposit(decimal value)
+    public void StatusCheck()
     {
         if (this.Status == AccountStatus.Blocked)
-            throw new Exception(message: "Account Blocked");
+            throw new Exception(message: "Account Blocked: " + this.Cpf);
 
         if (this.Status == AccountStatus.Inactive)
-            throw new Exception(message: "Account Inactive");
+            throw new Exception(message: "Account Inactive: " + this.Cpf);
 
         if (this.Status == AccountStatus.Closed)
-            throw new Exception(message: "Account Closed");
+            throw new Exception(message: "Account Closed: " + this.Cpf);
+    }
+
+    public bool Deposit(decimal value)
+    {
+        this.StatusCheck();
 
         this.Balance += value;
 
@@ -60,17 +65,10 @@ public class BankAccount
 
     public bool Withdraw(decimal value)
     {
-        if (this.Status == AccountStatus.Blocked)
-            throw new Exception(message: "Account Blocked");
-
-        if (this.Status == AccountStatus.Inactive)
-            throw new Exception(message: "Account Inactive");
-
-        if (this.Status == AccountStatus.Closed)
-            throw new Exception(message: "Account Closed");
+        this.StatusCheck();
 
         if (this.Balance - value < 0)
-            throw new ArgumentOutOfRangeException(paramName: "Balance Insufficient");
+            throw new ArgumentOutOfRangeException(paramName: "Balance Insufficient: " + this.Cpf);
 
         this.Balance -= value;
 
@@ -79,6 +77,9 @@ public class BankAccount
 
     public void Transfer(BankAccount destiny, decimal value)
     {
+        this.StatusCheck();
+        destiny.StatusCheck();
+
         bool isWithdraw = this.Withdraw(value: value);
 
         if (isWithdraw)
