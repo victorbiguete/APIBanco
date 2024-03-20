@@ -1,5 +1,6 @@
 using APIBanco.Services;
 using APIBanco.Domain.Models;
+using APIBanco.Domain.Profiles;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +13,7 @@ builder.Services.AddSingleton<AdressService>();
 
 // autoMapper
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
 
 // Add services to the container.
 

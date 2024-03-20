@@ -22,59 +22,24 @@ public class TransactionsService
         _bankAccountService = bankAccountService;
     }
 
-    public async Task<List<Transactions>> GetAsync()
+    public async Task<IEnumerable<Transactions>> GetAsync()
     {
         return await _transactions.Find(filter: _ => true).ToListAsync();
     }
 
-    public async Task<List<Transactions>> GetAsync(int cpf)
+    public async Task<Transactions> GetAsync(string Id)
     {
-        FilterDefinition<Transactions>? filter = Builders<Transactions>.Filter.Eq(field: transaction => transaction.Cpf, value: cpf);
-        return await _transactions.Find(filter: filter).ToListAsync();
+        FilterDefinition<Transactions>? filter = Builders<Transactions>.Filter.Eq(field: "_id", value: ObjectId.Parse(s: Id));
+        Transactions? response = await _transactions.Find(filter: filter).FirstOrDefaultAsync();
+
+        if (response == null)
+            throw new KeyNotFoundException("Transaction not found: " + Id);
+
+        return response;
     }
 
-    public async Task<Transactions> CreateAsync(Transactions transaction, int source)
+    public async Task<IEnumerable<Transactions>> GetAsync(DateTime GreaterThen, DateTime? LessThen)
     {
-        BankAccount? bankAccount = await _bankAccountService.GetAsync(Cpf: source);
-
-        if (transaction.Type == TransactionType.Deposit)
-            bankAccount.Deposit(value: transaction.Value);
-        if (transaction.Type == TransactionType.Withdraw)
-            bankAccount.Withdraw(value: transaction.Value);
-
-        await _bankAccountService.UpdateAsync(bankAccount: bankAccount);
-
-        await _transactions.InsertOneAsync(document: transaction);
-        return transaction;
-    }
-
-    public async Task<Transactions> CreateAsync(Transactions transaction, int source, int target)
-    {
-        BankAccount? bankAccountSource = await _bankAccountService.GetAsync(Cpf: source);
-        BankAccount? bankAccountTarget = await _bankAccountService.GetAsync(Cpf: target);
-
-        bankAccountSource.Transfer(destiny: bankAccountTarget, value: transaction.Value);
-
-        await _bankAccountService.UpdateAsync(bankAccount: bankAccountSource);
-        await _bankAccountService.UpdateAsync(bankAccount: bankAccountTarget);
-
-        await _transactions.InsertOneAsync(document: transaction);
-
-        Transactions transactionTarget = new Transactions(
-            cpf: target,
-            description: transaction.Description,
-            value: transaction.Value,
-            type: TransactionType.TransferIncome
-        );
-
-        await _transactions.InsertOneAsync(document: transactionTarget);
-
-        return transaction;
-    }
-
-    public async Task<List<Transactions>> GetByDate(DateTime GreaterThen, DateTime? LessThen)
-    {
-
         if (LessThen == null)
         {
             LessThen = DateTime.Now;
@@ -85,14 +50,19 @@ public class TransactionsService
             Builders<Transactions>.Filter.Lte(field: "Date", value: LessThen)
         );
 
-        List<Transactions>? res = await _transactions.Find(filter: filter).ToListAsync();
+        IEnumerable<Transactions>? response = await _transactions.Find(filter: filter).ToListAsync();
 
-        return res;
+        return response;
     }
 
-    public async Task<List<Transactions>> GetByDate(int cpf, DateTime GreaterThen, DateTime? LessThen)
+    public async Task<IEnumerable<Transactions>> GetAsync(int Cpf)
     {
+        FilterDefinition<Transactions>? filter = Builders<Transactions>.Filter.Eq(field: transaction => transaction.Cpf, value: Cpf);
+        return await _transactions.Find(filter: filter).ToListAsync();
+    }
 
+    public async Task<IEnumerable<Transactions>> GetAsync(int Cpf, DateTime GreaterThen, DateTime? LessThen)
+    {
         if (LessThen == null)
         {
             LessThen = DateTime.Now;
@@ -101,13 +71,61 @@ public class TransactionsService
         FilterDefinition<Transactions>? filter = Builders<Transactions>.Filter.And(
             Builders<Transactions>.Filter.Gte(field: "Date", value: GreaterThen),
             Builders<Transactions>.Filter.Lte(field: "Date", value: LessThen),
-            Builders<Transactions>.Filter.Eq(field: "Cpf", value: cpf)
+            Builders<Transactions>.Filter.Eq(field: "Cpf", value: Cpf)
         );
 
-        List<Transactions>? res = await _transactions.Find(filter: filter).ToListAsync();
+        List<Transactions>? response = await _transactions.Find(filter: filter).ToListAsync();
 
-        return res;
+        if (response.Count == 0)
+            throw new KeyNotFoundException("Transactions not found: " + Cpf);
+
+        return response;
     }
 
+    public async Task<Transactions> CreateAsync(Transactions Transaction, int Source)
+    {
+        IEnumerable<BankAccount>? bankAccount = await _bankAccountService.GetAsync(Cpf: Source);
+
+        if (Transaction.Type == TransactionType.Deposit)
+            bankAccount.First().Deposit(value: Transaction.Value);
+        if (Transaction.Type == TransactionType.Withdraw)
+            bankAccount.First().Withdraw(value: Transaction.Value);
+
+        await _bankAccountService.UpdateAsync(bankAccount: bankAccount.First());
+
+        await _transactions.InsertOneAsync(document: Transaction);
+        return Transaction;
+    }
+
+    public async Task<Transactions> CreateAsync(Transactions Transaction, int Source, int Target)
+    {
+        IEnumerable<BankAccount>? bankAccountSource = await _bankAccountService.GetAsync(Cpf: Source);
+        IEnumerable<BankAccount>? bankAccountTarget = await _bankAccountService.GetAsync(Cpf: Target);
+
+
+        bankAccountSource.First().Transfer(destiny: bankAccountTarget.First(), value: Transaction.Value);
+
+        await _bankAccountService.UpdateAsync(bankAccount: bankAccountSource.First());
+        await _bankAccountService.UpdateAsync(bankAccount: bankAccountTarget.First());
+
+        await _transactions.InsertOneAsync(document: Transaction);
+
+        Transactions transactionTarget = new Transactions(
+            cpf: Target,
+            description: Transaction.Description,
+            value: Transaction.Value,
+            type: TransactionType.TransferIncome
+        );
+
+        await _transactions.InsertOneAsync(document: transactionTarget);
+
+        return Transaction;
+    }
+
+    public async Task<long> Length()
+    {
+        long lenght = await _transactions.CountDocumentsAsync(filter: new BsonDocument());
+        return lenght;
+    }
 
 }

@@ -5,8 +5,7 @@ namespace APIBanco.Domain.Dtos;
 public class AdressRequestDto
 {
     [Required]
-    // [RegularExpression(pattern: @"^\d{5}-\d{3}$")]
-    // TODO remove comment
+    [RegularExpression(pattern: @"^\d{5}-\d{3}$")]
     public int ZipCode { get; set; }
 
     [Required]
@@ -22,7 +21,6 @@ public class AdressRequestDto
     public string City { get; set; } = null!;
 
     [Required]
-    // [RegularExpression(pattern: @"^[a-zA-Z]{2}$")]
-    // TODO remove comment
+    [RegularExpression(pattern: @"^[a-zA-Z]{2}$")]
     public string UF { get; set; } = null!;
 }

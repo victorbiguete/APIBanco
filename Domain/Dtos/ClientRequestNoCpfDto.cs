@@ -2,12 +2,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace APIBanco.Domain.Dtos;
 
-public class ClientRequestDto
+public class ClientRequestNoCpfDto
 {
-    [Required]
-    [RegularExpression(pattern: @"^\d{11}$")]
-    public int Cpf { get; set; }
-
     [Required]
     public string Name { get; set; } = null!;
 
@@ -19,14 +15,10 @@ public class ClientRequestDto
     [MinLength(length: 8)]
     public string Password { get; set; } = null!;
 
-    [DataType(dataType: DataType.PhoneNumber)]
     [Required]
     public int PhoneNumber { get; set; }
 
     [DataType(dataType: DataType.Date)]
     [Required]
     public DateTime BornDate { get; set; }
-
-    [Required]
-    public AdressRequestDto Adress { get; set; } = null!;
 }

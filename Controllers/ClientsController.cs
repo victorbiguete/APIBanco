@@ -28,47 +28,66 @@ public class ClientsController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(type: typeof(IEnumerable<ClientResponseDto>), statusCode: StatusCodes.Status200OK)]
-    [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(statusCode: StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<ClientResponseDto>>> Get()
     {
-        List<Client>? client = await _clientService.GetAsync();
-        List<Adress>? adress = await _adressService.GetAsync();
+        try
+        {
+            List<Client>? client = await _clientService.GetAsync();
+            IEnumerable<ClientResponseDto>? clientResponse = _mapper.Map<IEnumerable<ClientResponseDto>>(source: client);
 
-        IEnumerable<ClientResponseDto>? clientResponse = _mapper.Map<IEnumerable<ClientResponseDto>>(source: client);
-        // for (int i = 0; i < clientResponse.Count(); i++)
-        // {
-        //     if (adress.ElementAt(index: i) != null)
-        //         clientResponse.ElementAt(index: i).Adress = _mapper.Map<AdressResponseDto>(source: adress[index: i]);
-        // }
-
-        clientResponse = clientResponse
-            .Select(selector: client =>
-            {
-                client.Adress = _mapper
-                    .Map<AdressResponseDto>(source: adress
-                    .FirstOrDefault(predicate: y => y.Cpf == client.Cpf)); return client;
-            });
-
-        return Ok(value: clientResponse);
+            return Ok(value: clientResponse);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(error: e);
+        }
     }
 
-    [HttpGet(template: "{cpf}")]
+    [HttpGet(template: "id/{id}")]
     [ProducesResponseType(type: typeof(ClientResponseDto), statusCode: StatusCodes.Status200OK)]
-    [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(statusCode: StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ClientResponseDto>> Get(string id)
+    {
+        try
+        {
+            Client? client = await _clientService.GetAsync(Id: id);
+            ClientResponseDto? response = _mapper.Map<ClientResponseDto>(source: client);
+
+            return Ok(value: response);
+        }
+        catch (KeyNotFoundException e)
+        {
+            return NotFound(e.Message);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(error: e.Message);
+        }
+    }
+
+    [HttpGet(template: "cpf/{cpf}")]
+    [ProducesResponseType(type: typeof(ClientResponseDto), statusCode: StatusCodes.Status200OK)]
+    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ClientResponseDto>> Get(int cpf)
     {
-        Client? client = await _clientService.GetAsync(cpf: cpf);
-        Adress? adress = await _adressService.GetAsync(cpf: cpf);
+        try
+        {
+            Client? client = await _clientService.GetAsync(cpf: cpf);
+            ClientResponseDto? clientResponse = _mapper.Map<ClientResponseDto>(source: client);
 
-        ClientResponseDto? clientResponse = _mapper.Map<ClientResponseDto>(source: client);
-        clientResponse.Adress = _mapper.Map<AdressResponseDto>(source: adress);
-
-
-        return Ok(value: clientResponse);
+            return Ok(value: clientResponse);
+        }
+        catch (KeyNotFoundException e)
+        {
+            return NotFound(e.Message);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(error: e.Message);
+        }
     }
 
     [HttpPost]
@@ -85,21 +104,45 @@ public class ClientsController : ControllerBase
             await _clientService.CreateAsync(client: newClient, adress: newAdress);
 
             ClientResponseDto? response = _mapper.Map<ClientResponseDto>(source: newClient);
-            response.Adress = _mapper.Map<AdressResponseDto>(source: newAdress);
-
-            return CreatedAtAction(actionName: nameof(Get), routeValues: new { cpf = response.Cpf }, value: response);
+            return CreatedAtAction(actionName: nameof(Get), routeValues: new { id = response.Id }, value: response);
         }
         catch (MongoWriteException e)
         {
             if (e.WriteError.Category == ServerErrorCategory.DuplicateKey)
             {
-                return Conflict(error: "CPF already exists");
+                return Conflict(error: e.Message);
             }
-            return BadRequest(error: e);
+            return BadRequest(error: e.Message);
         }
         catch (Exception)
         {
             return BadRequest();
+        }
+    }
+
+    [HttpPut(template: "id/{id}")]
+    [ProducesResponseType(type: typeof(ClientResponseDto), statusCode: StatusCodes.Status202Accepted)]
+    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ClientResponseDto>> Put(string id, [FromBody] ClientRequestNoCpfDto client)
+    {
+        try
+        {
+            Client? newClient = _mapper.Map<Client>(source: client);
+
+            newClient = await _clientService.UpdateAsync(client: newClient, Id: id);
+
+            ClientResponseDto? response = _mapper.Map<ClientResponseDto>(source: newClient);
+
+            return Accepted(response);
+        }
+        catch (KeyNotFoundException e)
+        {
+            return NotFound(e.Message);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(error: e.Message);
         }
     }
 }

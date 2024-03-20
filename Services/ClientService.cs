@@ -34,10 +34,26 @@ public class ClientService
         return await _clients.Find(filter: client => true).ToListAsync();
     }
 
+    public async Task<Client> GetAsync(string Id)
+    {
+        FilterDefinition<Client>? filter = Builders<Client>.Filter.Eq(field: "_id", value: ObjectId.Parse(s: Id));
+        Client? response = await _clients.Find(filter: filter).FirstOrDefaultAsync();
+
+        if (response == null)
+            throw new KeyNotFoundException("Client not found: " + Id);
+
+        return response;
+    }
+
     public async Task<Client> GetAsync(int cpf)
     {
         FilterDefinition<Client>? filter = Builders<Client>.Filter.Eq(field: client => client.Cpf, value: cpf);
-        return await _clients.Find(filter: filter).FirstOrDefaultAsync();
+        Client? response = await _clients.Find(filter: filter).FirstOrDefaultAsync();
+
+        if (response == null)
+            throw new KeyNotFoundException("Client not found: " + cpf);
+
+        return response;
     }
 
     public async Task<Client> CreateAsync(Client client, Adress adress)
@@ -47,10 +63,37 @@ public class ClientService
         // create  a bank account for the client
         BankAccount bankAccount = new BankAccount(cpf: client.Cpf);
         await _bankAccountService.CreateAsync(bankAccount: bankAccount);
+
         // create adres
         adress.Cpf = client.Cpf;
         await _adressService.CreateAsync(adress: adress);
 
         return client;
+    }
+
+    public async Task<Client> UpdateAsync(Client client, string Id)
+    {
+        FilterDefinition<Client>? filter = Builders<Client>.Filter.Eq(field: "_id", value: ObjectId.Parse(s: Id));
+        Client? oldClient = await _clients.Find(filter: filter).FirstOrDefaultAsync();
+
+        if (oldClient == null)
+            throw new KeyNotFoundException("Client not found: " + Id);
+
+        oldClient.UpdatedAt = DateTime.Now;
+        oldClient.Name = client.Name;
+        oldClient.Email = client.Email;
+        oldClient.Password = client.Password;
+        oldClient.PhoneNumber = client.PhoneNumber;
+        oldClient.BornDate = client.BornDate;
+
+        await _clients.ReplaceOneAsync(filter: filter, replacement: oldClient);
+
+        return oldClient;
+    }
+
+    public async Task<long> Length()
+    {
+        long lenght = await _clients.CountDocumentsAsync(filter: new BsonDocument());
+        return lenght;
     }
 }

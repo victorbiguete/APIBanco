@@ -9,7 +9,8 @@ public class Adress
 {
     [BsonId]
     [BsonRepresentation(representation: BsonType.ObjectId)]
-    public ObjectId Id { get; set; }
+    [JsonPropertyName(name: "id")]
+    public string Id { get; set; } = null!;
 
     [BsonElement(elementName: "cpf")]
     [JsonPropertyName(name: "cpf")]

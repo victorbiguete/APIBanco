@@ -8,6 +8,7 @@ using APIBanco.Domain.Dtos;
 using APIBanco.Services;
 using AutoMapper;
 using APIBanco.Domain.Enums;
+using System.Runtime.CompilerServices;
 
 
 namespace APIBanco.Controllers;
@@ -26,134 +27,127 @@ public class TransactionsController : ControllerBase
         _mapper = mapper;
     }
 
+
     [HttpGet]
-    [ProducesResponseType(type: typeof(List<TransactionResponseDto>), statusCode: StatusCodes.Status200OK)]
-    [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
+    [ProducesResponseType(type: typeof(IEnumerable<TransactionResponseDto>), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    public async Task<List<TransactionResponseDto>> Get()
+    public async Task<ActionResult<IEnumerable<TransactionResponseDto>>> Get([FromQuery(Name = "g")] int? g, [FromQuery(Name = "l")] int? l)
     {
-        List<TransactionResponseDto>? transactions = _mapper.Map<List<TransactionResponseDto>>(source: await _transactionsService.GetAsync());
-        return transactions;
-    }
-
-    [HttpGet(template: "date")]
-    [ProducesResponseType(type: typeof(List<TransactionResponseDto>), statusCode: StatusCodes.Status200OK)]
-    [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
-    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<List<TransactionResponseDto>>> GetByDate([FromQuery(Name = "g")] DateTime GreaterThen, [FromQuery(Name = "l")] DateTime? LessThen)
-    {
-        if (GreaterThen == null)
+        try
         {
-            return BadRequest(error: "GreaterThen cannot be null");
+            if (g == null)
+            {
+                IEnumerable<Transactions>? list = await _transactionsService.GetAsync();
+                IEnumerable<TransactionResponseDto>? transactions = _mapper.Map<IEnumerable<TransactionResponseDto>>(source: list);
+                return Ok(transactions);
+            }
+            else
+            {
+                int aux = (int)(g * -1);
+                DateTime GreaterThen = DateTime.Now.AddDays(value: aux);
+                DateTime? LessThen = null;
+
+                if (l != null)
+                {
+                    aux = (int)(l * -1);
+                    LessThen = DateTime.Now.AddDays(value: aux);
+                }
+
+                IEnumerable<Transactions>? transactions = await _transactionsService.GetAsync(GreaterThen: GreaterThen, LessThen: LessThen);
+
+                IEnumerable<TransactionResponseDto>? response = _mapper.Map<IEnumerable<TransactionResponseDto>>(source: transactions);
+                return Ok(response);
+            }
         }
-
-        List<Transactions>? transactions = await _transactionsService.GetByDate(GreaterThen: GreaterThen, LessThen: LessThen);
-        List<TransactionResponseDto>? response = _mapper.Map<List<TransactionResponseDto>>(source: transactions);
-        return Ok(response);
-    }
-
-    [HttpGet(template: "date10days")]
-    [ProducesResponseType(type: typeof(List<TransactionResponseDto>), statusCode: StatusCodes.Status200OK)]
-    [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
-    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<List<TransactionResponseDto>>> GetByDateTenDays()
-    {
-        DateTime GreaterThen = DateTime.Now.AddDays(value: -10);
-        DateTime? LessThen = null;
-
-        List<Transactions>? transactions = await _transactionsService.GetByDate(GreaterThen: GreaterThen, LessThen: LessThen);
-        List<TransactionResponseDto>? response = _mapper.Map<List<TransactionResponseDto>>(source: transactions);
-        return Ok(response);
-    }
-
-
-    [HttpGet(template: "date30days")]
-    [ProducesResponseType(type: typeof(List<TransactionResponseDto>), statusCode: StatusCodes.Status200OK)]
-    [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
-    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<List<TransactionResponseDto>>> GetByDateThirtyDays()
-    {
-        DateTime GreaterThen = DateTime.Now.AddDays(value: -30);
-        DateTime? LessThen = null;
-
-        List<Transactions>? transactions = await _transactionsService.GetByDate(GreaterThen: GreaterThen, LessThen: LessThen);
-        List<TransactionResponseDto>? response = _mapper.Map<List<TransactionResponseDto>>(source: transactions);
-        return Ok(response);
-    }
-
-    // ////////////////////////////
-
-    [HttpGet(template: "{cpf}/date")]
-    [ProducesResponseType(type: typeof(List<TransactionResponseDto>), statusCode: StatusCodes.Status200OK)]
-    [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
-    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<List<TransactionResponseDto>>> GetByDate(int cpf, [FromQuery(Name = "g")] DateTime GreaterThen, [FromQuery(Name = "l")] DateTime? LessThen)
-    {
-        if (GreaterThen == null)
+        catch (Exception e)
         {
-            return BadRequest(error: "GreaterThen cannot be null");
+            return BadRequest(error: e.Message);
         }
-
-        List<Transactions>? transactions = await _transactionsService.GetByDate(cpf: cpf, GreaterThen: GreaterThen, LessThen: LessThen);
-        List<TransactionResponseDto>? response = _mapper.Map<List<TransactionResponseDto>>(source: transactions);
-        return Ok(response);
     }
 
-    [HttpGet(template: "{cpf}/date10days")]
-    [ProducesResponseType(type: typeof(List<TransactionResponseDto>), statusCode: StatusCodes.Status200OK)]
-    [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
+
+    [HttpGet("id/{id}")]
+    [ProducesResponseType(type: typeof(TransactionResponseDto), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<List<TransactionResponseDto>>> GetByDateTenDays(int cpf)
+    [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<Transactions>> Get(string id)
     {
-        DateTime GreaterThen = DateTime.Now.AddDays(value: -10);
-        DateTime? LessThen = null;
-
-        List<Transactions>? transactions = await _transactionsService.GetByDate(cpf: cpf, GreaterThen: GreaterThen, LessThen: LessThen);
-        List<TransactionResponseDto>? response = _mapper.Map<List<TransactionResponseDto>>(source: transactions);
-        return Ok(response);
+        try
+        {
+            Transactions? response = await _transactionsService.GetAsync(Id: id);
+            return Ok(response);
+        }
+        catch (KeyNotFoundException e)
+        {
+            return NotFound(e.Message);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(error: e.Message);
+        }
     }
 
-
-    [HttpGet(template: "{cpf}/date30days")]
+    [HttpGet(template: "cpf/{cpf}")]
     [ProducesResponseType(type: typeof(List<TransactionResponseDto>), statusCode: StatusCodes.Status200OK)]
-    [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<List<TransactionResponseDto>>> GetByDateThirtyDays(int cpf)
+    [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IEnumerable<TransactionResponseDto>>> Get(int cpf, [FromQuery(Name = "g")] int? g, [FromQuery(Name = "l")] int? l)
     {
-        DateTime GreaterThen = DateTime.Now.AddDays(value: -30);
-        DateTime? LessThen = null;
+        try
+        {
+            if (g == null)
+            {
+                IEnumerable<Transactions>? list = await _transactionsService.GetAsync(Cpf: cpf);
+                IEnumerable<TransactionResponseDto>? transactions = _mapper.Map<IEnumerable<TransactionResponseDto>>(source: list);
+                return Ok(transactions);
+            }
+            else
+            {
+                int aux = (int)(g * -1);
+                DateTime GreaterThen = DateTime.Now.AddDays(value: aux);
+                DateTime? LessThen = null;
 
-        List<Transactions>? transactions = await _transactionsService.GetByDate(cpf: cpf, GreaterThen: GreaterThen, LessThen: LessThen);
-        List<TransactionResponseDto>? response = _mapper.Map<List<TransactionResponseDto>>(source: transactions);
-        return Ok(response);
+                if (l != null)
+                {
+                    aux = (int)(l * -1);
+                    LessThen = DateTime.Now.AddDays(value: aux);
+                }
+
+                IEnumerable<Transactions>? transactions = await _transactionsService.GetAsync(Cpf: cpf, GreaterThen: GreaterThen, LessThen: LessThen);
+
+                IEnumerable<TransactionResponseDto>? response = _mapper.Map<IEnumerable<TransactionResponseDto>>(source: transactions);
+                return Ok(response);
+            }
+        }
+        catch (KeyNotFoundException e)
+        {
+            return NotFound(e.Message);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(error: e.Message);
+        }
     }
 
-    // /////////////////////////////
-
-    [HttpGet(template: "{cpf}")]
-    [ProducesResponseType(type: typeof(List<TransactionResponseDto>), statusCode: StatusCodes.Status200OK)]
-    [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
-    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    public async Task<List<TransactionResponseDto>> Get(int cpf)
-    {
-        List<TransactionResponseDto>? transactions = _mapper.Map<List<TransactionResponseDto>>(source: await _transactionsService.GetAsync(cpf: cpf));
-        return transactions;
-    }
-
-    [HttpPost(template: "deposity/{source}")]
+    [HttpPost(template: "deposity/{cpf}")]
     [ProducesResponseType(type: typeof(TransactionResponseDto), statusCode: StatusCodes.Status201Created)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<Transactions>> PostDeposity([FromBody] TransactionRequestDto transaction, int source)
+    [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<Transactions>> PostDeposity([FromBody] TransactionRequestDto transaction, int cpf)
     {
         try
         {
             Transactions? newTransaction = _mapper.Map<Transactions>(source: transaction);
-            newTransaction.Cpf = source;
+            newTransaction.Cpf = cpf;
             newTransaction.Type = TransactionType.Deposit;
             newTransaction.Date = DateTime.Now;
-            await _transactionsService.CreateAsync(transaction: newTransaction, source: source);
+            await _transactionsService.CreateAsync(Transaction: newTransaction, Source: cpf);
             TransactionResponseDto? response = _mapper.Map<TransactionResponseDto>(source: newTransaction);
-            return CreatedAtAction(actionName: nameof(Get), routeValues: new { cpf = source }, value: response);
+            return CreatedAtAction(actionName: nameof(Get), routeValues: new { id = response.Id }, value: response);
+        }
+        catch (KeyNotFoundException e)
+        {
+            return NotFound(e.Message);
         }
         catch (Exception e)
         {
@@ -161,20 +155,25 @@ public class TransactionsController : ControllerBase
         }
     }
 
-    [HttpPost(template: "withdraw/{source}")]
+    [HttpPost(template: "withdraw/{cpf}")]
     [ProducesResponseType(type: typeof(TransactionResponseDto), statusCode: StatusCodes.Status201Created)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<Transactions>> PostWithdraw([FromBody] TransactionRequestDto transaction, int source)
+    [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<Transactions>> PostWithdraw([FromBody] TransactionRequestDto transaction, int cpf)
     {
         try
         {
             Transactions? newTransaction = _mapper.Map<Transactions>(source: transaction);
-            newTransaction.Cpf = source;
+            newTransaction.Cpf = cpf;
             newTransaction.Type = TransactionType.Withdraw;
             newTransaction.Date = DateTime.Now;
-            await _transactionsService.CreateAsync(transaction: newTransaction, source: source);
+            await _transactionsService.CreateAsync(Transaction: newTransaction, Source: cpf);
             TransactionResponseDto? response = _mapper.Map<TransactionResponseDto>(source: newTransaction);
-            return CreatedAtAction(actionName: nameof(Get), routeValues: new { cpf = source }, value: response);
+            return CreatedAtAction(actionName: nameof(Get), routeValues: new { id = response.Id }, value: response);
+        }
+        catch (KeyNotFoundException e)
+        {
+            return NotFound(e.Message);
         }
         catch (Exception e)
         {
@@ -182,20 +181,25 @@ public class TransactionsController : ControllerBase
         }
     }
 
-    [HttpPost(template: "transfer/{source}/{target}")]
+    [HttpPost(template: "transfer/{cpf}/{cpftarget}")]
     [ProducesResponseType(type: typeof(TransactionResponseDto), statusCode: StatusCodes.Status201Created)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<Transactions>> PostTransfer([FromBody] TransactionRequestDto transaction, int source, int target)
+    [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<Transactions>> PostTransfer([FromBody] TransactionRequestDto transaction, int cpf, int cpftarget)
     {
         try
         {
             Transactions? newTransaction = _mapper.Map<Transactions>(source: transaction);
-            newTransaction.Cpf = source;
+            newTransaction.Cpf = cpf;
             newTransaction.Type = TransactionType.TransferOutcome;
             newTransaction.Date = DateTime.Now;
-            await _transactionsService.CreateAsync(transaction: newTransaction, source: source, target: target);
+            await _transactionsService.CreateAsync(Transaction: newTransaction, Source: cpf, Target: cpftarget);
             TransactionResponseDto? response = _mapper.Map<TransactionResponseDto>(source: newTransaction);
-            return CreatedAtAction(actionName: nameof(Get), routeValues: new { cpf = source }, value: response);
+            return CreatedAtAction(actionName: nameof(Get), routeValues: new { id = response.Id }, value: response);
+        }
+        catch (KeyNotFoundException e)
+        {
+            return NotFound(e.Message);
         }
         catch (Exception e)
         {

@@ -18,15 +18,31 @@ public class BankAccountService
         _bankAccount = database.GetCollection<BankAccount>(name: settings.Value.CollectionBankAccount);
     }
 
-    public async Task<List<BankAccount>> GetAsync()
+    public async Task<IEnumerable<BankAccount>> GetAsync()
     {
         return await _bankAccount.Find(filter: _ => true).ToListAsync();
     }
 
-    public async Task<BankAccount> GetAsync(int Cpf)
+    public async Task<BankAccount> GetAsync(string Id)
+    {
+        FilterDefinition<BankAccount>? filter = Builders<BankAccount>.Filter.Eq(field: "_id", value: ObjectId.Parse(s: Id));
+        BankAccount? response = await _bankAccount.Find(filter: filter).FirstOrDefaultAsync();
+
+        if (response == null)
+            throw new KeyNotFoundException("BankAccount not found: " + Id);
+
+        return response;
+    }
+
+    public async Task<IEnumerable<BankAccount>> GetAsync(int Cpf)
     {
         FilterDefinition<BankAccount>? filter = Builders<BankAccount>.Filter.Eq(field: x => x.Cpf, Cpf);
-        return await _bankAccount.Find(filter: filter).FirstOrDefaultAsync();
+        List<BankAccount>? response = await _bankAccount.Find(filter: filter).ToListAsync();
+
+        if (response.Count == 0)
+            throw new KeyNotFoundException("BankAccount not found: " + Cpf);
+
+        return response;
     }
 
     public async Task<BankAccount> CreateAsync(BankAccount bankAccount)
@@ -53,6 +69,9 @@ public class BankAccountService
         FilterDefinition<BankAccount>? filter = Builders<BankAccount>.Filter.Eq(field: x => x.Cpf, value: Cpf);
         BankAccount? oldBankAccount = await _bankAccount.Find(filter: filter).FirstOrDefaultAsync();
 
+        if (oldBankAccount == null)
+            throw new KeyNotFoundException("BankAccount not found: " + Cpf);
+
         oldBankAccount.Status = status;
         oldBankAccount.UpdatedAt = DateTime.Now;
 
@@ -61,4 +80,9 @@ public class BankAccountService
         return oldBankAccount;
     }
 
+    public async Task<long> Length()
+    {
+        long lenght = await _bankAccount.CountDocumentsAsync(filter: new BsonDocument());
+        return lenght;
+    }
 }

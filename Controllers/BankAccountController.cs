@@ -26,35 +26,85 @@ public class BankAccountController : ControllerBase
     }
 
     [HttpGet]
-    [ProducesResponseType(type: typeof(List<BankAccountResponseDto>), statusCode: StatusCodes.Status200OK)]
-    [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
+    [ProducesResponseType(type: typeof(IEnumerable<BankAccountResponseDto>), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(statusCode: StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<List<BankAccount>>> Get()
+    public async Task<ActionResult<IEnumerable<BankAccount>>> Get()
     {
-        List<BankAccount>? BackAccount = await _bankAccountService.GetAsync();
-        List<BankAccountResponseDto>? response = _mapper.Map<List<BankAccountResponseDto>>(source: BackAccount);
-        return Ok(value: response);
+        try
+        {
+            IEnumerable<BankAccount>? BackAccount = await _bankAccountService.GetAsync();
+            IEnumerable<BankAccountResponseDto>? response = _mapper.Map<IEnumerable<BankAccountResponseDto>>(source: BackAccount);
+            return Ok(value: response);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(error: e.Message);
+        }
     }
 
-    [HttpGet(template: "{cpf}")]
+    [HttpGet(template: "id/{id}")]
     [ProducesResponseType(type: typeof(BankAccountResponseDto), statusCode: StatusCodes.Status200OK)]
-    [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
+    [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(statusCode: StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<BankAccount>> Get(int cpf)
+    public async Task<ActionResult<BankAccountResponseDto>> Get(string id)
     {
-        BankAccount? BackAccount = await _bankAccountService.GetAsync(Cpf: cpf);
-        BankAccountResponseDto? response = _mapper.Map<BankAccountResponseDto>(source: BackAccount);
-        return Ok(value: response);
+        try
+        {
+            BankAccount? BackAccount = await _bankAccountService.GetAsync(Id: id);
+            BankAccountResponseDto? response = _mapper.Map<BankAccountResponseDto>(source: BackAccount);
+            return Ok(value: response);
+        }
+        catch (KeyNotFoundException e)
+        {
+            return NotFound(e.Message);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(error: e.Message);
+        }
+    }
+
+    [HttpGet(template: "cpf/{cpf}")]
+    [ProducesResponseType(type: typeof(BankAccountResponseDto), statusCode: StatusCodes.Status200OK)]
+    [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
+    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<IEnumerable<BankAccountResponseDto>>> Get(int cpf)
+    {
+        try
+        {
+            IEnumerable<BankAccount>? BackAccount = await _bankAccountService.GetAsync(Cpf: cpf);
+            IEnumerable<BankAccountResponseDto>? response = _mapper.Map<IEnumerable<BankAccountResponseDto>>(source: BackAccount);
+            return Ok(value: response);
+        }
+        catch (KeyNotFoundException e)
+        {
+            return NotFound(e.Message);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(error: e.Message);
+        }
     }
 
     [HttpPut(template: "{cpf}")]
+    [ProducesResponseType(statusCode: StatusCodes.Status202Accepted)]
+    [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
+    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Put([FromBody] AccountStatus AcountStatus, int cpf)
     {
-        await _bankAccountService.UpdateStatusAsync(Cpf: cpf, status: AcountStatus);
-
-        return Accepted("Account updated");
+        try
+        {
+            BankAccount? response = await _bankAccountService.UpdateStatusAsync(Cpf: cpf, status: AcountStatus);
+            return Accepted(value: response);
+        }
+        catch (KeyNotFoundException e)
+        {
+            return NotFound(e.Message);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(error: e.Message);
+        }
     }
 
 }
