@@ -1,14 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 
-using MongoDB.Bson;
-using MongoDB.Driver;
-
 using APIBanco.Domain.Models;
 using APIBanco.Domain.Dtos;
 using APIBanco.Services;
 using AutoMapper;
 using APIBanco.Domain.Enums;
-using System.Runtime.CompilerServices;
 
 
 namespace APIBanco.Controllers;
@@ -70,11 +66,11 @@ public class TransactionsController : ControllerBase
     [ProducesResponseType(type: typeof(TransactionResponseDto), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<Transactions>> Get(string id)
+    public async Task<ActionResult<Transactions>> GetById(int id)
     {
         try
         {
-            Transactions? response = await _transactionsService.GetAsync(Id: id);
+            Transactions? response = await _transactionsService.GetByIdAsync(Id: id);
             return Ok(response);
         }
         catch (KeyNotFoundException e)
@@ -91,13 +87,13 @@ public class TransactionsController : ControllerBase
     [ProducesResponseType(type: typeof(List<TransactionResponseDto>), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IEnumerable<TransactionResponseDto>>> Get(int cpf, [FromQuery(Name = "g")] int? g, [FromQuery(Name = "l")] int? l)
+    public async Task<ActionResult<IEnumerable<TransactionResponseDto>>> GetByCpf(ulong cpf, [FromQuery(Name = "g")] int? g, [FromQuery(Name = "l")] int? l)
     {
         try
         {
             if (g == null)
             {
-                IEnumerable<Transactions>? list = await _transactionsService.GetAsync(Cpf: cpf);
+                IEnumerable<Transactions>? list = await _transactionsService.GetByCpfAsync(Cpf: cpf);
                 IEnumerable<TransactionResponseDto>? transactions = _mapper.Map<IEnumerable<TransactionResponseDto>>(source: list);
                 return Ok(transactions);
             }
@@ -133,7 +129,7 @@ public class TransactionsController : ControllerBase
     [ProducesResponseType(type: typeof(TransactionResponseDto), statusCode: StatusCodes.Status201Created)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<Transactions>> PostDeposity([FromBody] TransactionRequestDto transaction, int cpf)
+    public async Task<ActionResult<Transactions>> PostDeposity([FromBody] TransactionRequestDto transaction, ulong cpf)
     {
         try
         {
@@ -159,7 +155,7 @@ public class TransactionsController : ControllerBase
     [ProducesResponseType(type: typeof(TransactionResponseDto), statusCode: StatusCodes.Status201Created)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<Transactions>> PostWithdraw([FromBody] TransactionRequestDto transaction, int cpf)
+    public async Task<ActionResult<Transactions>> PostWithdraw([FromBody] TransactionRequestDto transaction, ulong cpf)
     {
         try
         {
@@ -185,7 +181,7 @@ public class TransactionsController : ControllerBase
     [ProducesResponseType(type: typeof(TransactionResponseDto), statusCode: StatusCodes.Status201Created)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<Transactions>> PostTransfer([FromBody] TransactionRequestDto transaction, int cpf, int cpftarget)
+    public async Task<ActionResult<Transactions>> PostTransfer([FromBody] TransactionRequestDto transaction, ulong cpf, ulong cpftarget)
     {
         try
         {

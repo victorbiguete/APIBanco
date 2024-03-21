@@ -1,48 +1,31 @@
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
-
-using System.Text.Json.Serialization;
-
+using System.ComponentModel.DataAnnotations;
 using APIBanco.Domain.Enums;
 
 namespace APIBanco.Domain.Models;
 
-[BsonIgnoreExtraElements]
 public class Transactions
 {
-    [BsonId]
-    [BsonRepresentation(representation: BsonType.ObjectId)]
-    [JsonPropertyName(name: "id")]
-    public string Id { get; set; } = null!;
-
-    [BsonElement(elementName: "cpf")]
-    [JsonPropertyName(name: "cpf")]
-    public int Cpf { get; set; }
-
-    [BsonElement(elementName: "description")]
-    [JsonPropertyName(name: "description")]
-    public string Description { get; set; } = null!;
-
-    [BsonElement(elementName: "value")]
-    [JsonPropertyName(name: "value")]
+    [Key]
+    [Required]
+    public int Id { get; set; }
+    [Required]
+    public ulong Cpf { get; set; }
+    public string? Description { get; set; }
     public decimal Value { get; set; }
-
-    [BsonElement(elementName: "date")]
-    [JsonPropertyName(name: "date")]
     public DateTime Date { get; set; }
-
-    [BsonElement(elementName: "type")]
-    [JsonPropertyName(name: "type")]
     public TransactionType Type { get; set; }
+
+    public int? BankAccountId { get; set; }
+    public virtual BankAccount BankAccount { get; set; } = null!;
 
     public Transactions() { }
 
-    public Transactions(int cpf, string description, decimal value, TransactionType type)
+    public Transactions(ulong cpf, string description, decimal value, TransactionType type)
     {
         this.Cpf = cpf;
         this.Description = description;
         this.Value = value;
-        this.Date = DateTime.Now;
         this.Type = type;
+        this.Date = DateTime.UtcNow;
     }
 }

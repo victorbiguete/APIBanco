@@ -1,7 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-
-using MongoDB.Bson;
-using MongoDB.Driver;
 using AutoMapper;
 
 using APIBanco.Domain.Models;
@@ -46,11 +43,11 @@ public class BankAccountController : ControllerBase
     [ProducesResponseType(type: typeof(BankAccountResponseDto), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<BankAccountResponseDto>> Get(string id)
+    public async Task<ActionResult<BankAccountResponseDto>> GetById(int id)
     {
         try
         {
-            BankAccount? BackAccount = await _bankAccountService.GetAsync(Id: id);
+            BankAccount? BackAccount = await _bankAccountService.GetByIdAsync(id: id);
             BankAccountResponseDto? response = _mapper.Map<BankAccountResponseDto>(source: BackAccount);
             return Ok(value: response);
         }
@@ -68,12 +65,12 @@ public class BankAccountController : ControllerBase
     [ProducesResponseType(type: typeof(BankAccountResponseDto), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<IEnumerable<BankAccountResponseDto>>> Get(int cpf)
+    public async Task<ActionResult<BankAccountResponseDto>> GetByCpf(ulong cpf)
     {
         try
         {
-            IEnumerable<BankAccount>? BackAccount = await _bankAccountService.GetAsync(Cpf: cpf);
-            IEnumerable<BankAccountResponseDto>? response = _mapper.Map<IEnumerable<BankAccountResponseDto>>(source: BackAccount);
+            BankAccount? BackAccount = await _bankAccountService.GetByCpfAsync(Cpf: cpf);
+            BankAccountResponseDto? response = _mapper.Map<BankAccountResponseDto>(source: BackAccount);
             return Ok(value: response);
         }
         catch (KeyNotFoundException e)
@@ -86,15 +83,15 @@ public class BankAccountController : ControllerBase
         }
     }
 
-    [HttpPut(template: "{cpf}")]
+    [HttpPut(template: "{id}")]
     [ProducesResponseType(statusCode: StatusCodes.Status202Accepted)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Put([FromBody] AccountStatus AcountStatus, int cpf)
+    public async Task<IActionResult> Put([FromBody] AccountStatus AcountStatus, int id)
     {
         try
         {
-            BankAccount? response = await _bankAccountService.UpdateStatusAsync(Cpf: cpf, status: AcountStatus);
+            BankAccount? response = await _bankAccountService.UpdateStatusAsync(id: id, status: AcountStatus);
             return Accepted(value: response);
         }
         catch (KeyNotFoundException e)

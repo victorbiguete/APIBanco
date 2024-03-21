@@ -1,45 +1,39 @@
-using Microsoft.Extensions.Options;
-using MongoDB.Driver;
-using MongoDB.Bson;
-
 using APIBanco.Domain.Models;
 using APIBanco.Domain.Enums;
+using APIBanco.Domain.Contexts;
+using Microsoft.EntityFrameworkCore;
 
 namespace APIBanco.Services;
 
 public class BankAccountService
 {
-    private readonly IMongoCollection<BankAccount> _bankAccount;
+    private readonly AppDbContext _dbContext;
 
-    public BankAccountService(IOptions<MongoDBSettings> settings)
+    public BankAccountService(AppDbContext dbContext)
     {
-        MongoClient? client = new MongoClient(connectionString: settings.Value.ConnectionURI);
-        IMongoDatabase? database = client.GetDatabase(name: settings.Value.DatabaseName);
-        _bankAccount = database.GetCollection<BankAccount>(name: settings.Value.CollectionBankAccount);
+        _dbContext = dbContext;
     }
 
     public async Task<IEnumerable<BankAccount>> GetAsync()
     {
-        return await _bankAccount.Find(filter: _ => true).ToListAsync();
+        return await _dbContext.BankAccounts.ToListAsync();
     }
 
-    public async Task<BankAccount> GetAsync(string Id)
+    public async Task<BankAccount> GetByIdAsync(int id)
     {
-        FilterDefinition<BankAccount>? filter = Builders<BankAccount>.Filter.Eq(field: "_id", value: ObjectId.Parse(s: Id));
-        BankAccount? response = await _bankAccount.Find(filter: filter).FirstOrDefaultAsync();
+        BankAccount? response = await _dbContext.BankAccounts.FirstOrDefaultAsync(x => x.Id == id);
 
         if (response == null)
-            throw new KeyNotFoundException("BankAccount not found: " + Id);
+            throw new KeyNotFoundException("BankAccount not found: " + id);
 
         return response;
     }
 
-    public async Task<IEnumerable<BankAccount>> GetAsync(int Cpf)
+    public async Task<BankAccount> GetByCpfAsync(ulong Cpf)
     {
-        FilterDefinition<BankAccount>? filter = Builders<BankAccount>.Filter.Eq(field: x => x.Cpf, Cpf);
-        List<BankAccount>? response = await _bankAccount.Find(filter: filter).ToListAsync();
+        BankAccount? response = await _dbContext.BankAccounts.FirstOrDefaultAsync(x => x.Cpf == Cpf);
 
-        if (response.Count == 0)
+        if (response == null)
             throw new KeyNotFoundException("BankAccount not found: " + Cpf);
 
         return response;
@@ -47,42 +41,39 @@ public class BankAccountService
 
     public async Task<BankAccount> CreateAsync(BankAccount bankAccount)
     {
-        await _bankAccount.InsertOneAsync(document: bankAccount);
+        await _dbContext.BankAccounts.AddAsync(bankAccount);
         return bankAccount;
     }
 
     public async Task<BankAccount> UpdateAsync(BankAccount bankAccount)
     {
-        FilterDefinition<BankAccount>? filter = Builders<BankAccount>.Filter.Eq(field: x => x.Cpf, value: bankAccount.Cpf);
-        BankAccount? oldBankAccount = await _bankAccount.Find(filter: filter).FirstOrDefaultAsync();
+        BankAccount? oldBankAccount = await _dbContext.BankAccounts.FirstOrDefaultAsync(x => x.Id == bankAccount.Id);
+
+        if (oldBankAccount == null)
+            throw new KeyNotFoundException("BankAccount not found: " + bankAccount.Id);
 
         bankAccount.Id = oldBankAccount.Id;
         bankAccount.UpdatedAt = DateTime.Now;
 
-        await _bankAccount.ReplaceOneAsync(filter: filter, replacement: bankAccount);
+        _dbContext.BankAccounts.Update(bankAccount);
+        await _dbContext.SaveChangesAsync();
 
         return bankAccount;
     }
 
-    public async Task<BankAccount> UpdateStatusAsync(int Cpf, AccountStatus status)
+    public async Task<BankAccount> UpdateStatusAsync(int id, AccountStatus status)
     {
-        FilterDefinition<BankAccount>? filter = Builders<BankAccount>.Filter.Eq(field: x => x.Cpf, value: Cpf);
-        BankAccount? oldBankAccount = await _bankAccount.Find(filter: filter).FirstOrDefaultAsync();
+        BankAccount? oldBankAccount = await _dbContext.BankAccounts.FirstOrDefaultAsync(x => x.Id == id);
 
         if (oldBankAccount == null)
-            throw new KeyNotFoundException("BankAccount not found: " + Cpf);
+            throw new KeyNotFoundException("BankAccount not found: " + id);
 
         oldBankAccount.Status = status;
         oldBankAccount.UpdatedAt = DateTime.Now;
 
-        await _bankAccount.ReplaceOneAsync(filter: filter, replacement: oldBankAccount);
+        _dbContext.Update(oldBankAccount);
+        await _dbContext.SaveChangesAsync();
 
         return oldBankAccount;
-    }
-
-    public async Task<long> Length()
-    {
-        long lenght = await _bankAccount.CountDocumentsAsync(filter: new BsonDocument());
-        return lenght;
     }
 }

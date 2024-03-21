@@ -5,7 +5,6 @@ namespace APIBanco.Domain.Dtos;
 public class AdressRequestDto
 {
     [Required]
-    [RegularExpression(pattern: @"^\d{5}-\d{3}$")]
     public int ZipCode { get; set; }
 
     [Required]

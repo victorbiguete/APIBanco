@@ -8,6 +8,6 @@ public class BankAccountProfile : Profile
 {
     public BankAccountProfile()
     {
-        CreateMap<BankAccount, BankAccountResponseDto>().ReverseMap();
+        CreateMap<BankAccount, BankAccountResponseDto>();
     }
 }

@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 
-using MongoDB.Bson;
-using MongoDB.Driver;
 using AutoMapper;
 
 using APIBanco.Domain.Models;
@@ -48,11 +46,11 @@ public class ClientsController : ControllerBase
     [ProducesResponseType(type: typeof(ClientResponseDto), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ClientResponseDto>> Get(string id)
+    public async Task<ActionResult<ClientResponseDto>> GetById(int id)
     {
         try
         {
-            Client? client = await _clientService.GetAsync(Id: id);
+            Client? client = await _clientService.GetByIdAsync(id: id);
             ClientResponseDto? response = _mapper.Map<ClientResponseDto>(source: client);
 
             return Ok(value: response);
@@ -71,11 +69,11 @@ public class ClientsController : ControllerBase
     [ProducesResponseType(type: typeof(ClientResponseDto), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ClientResponseDto>> Get(int cpf)
+    public async Task<ActionResult<ClientResponseDto>> GetByCpf(ulong cpf)
     {
         try
         {
-            Client? client = await _clientService.GetAsync(cpf: cpf);
+            Client? client = await _clientService.GetByCpfAsync(cpf: cpf);
             ClientResponseDto? clientResponse = _mapper.Map<ClientResponseDto>(source: client);
 
             return Ok(value: clientResponse);
@@ -96,27 +94,20 @@ public class ClientsController : ControllerBase
     [ProducesResponseType(statusCode: StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Post([FromBody] ClientRequestDto client)
     {
+        System.Console.WriteLine("chamou");
         try
         {
             Client? newClient = _mapper.Map<Client>(source: client);
-            Adress? newAdress = _mapper.Map<Adress>(source: client.Adress);
-
-            await _clientService.CreateAsync(client: newClient, adress: newAdress);
+            // var newClient = client;
+            System.Console.WriteLine(newClient.ToString());
+            await _clientService.CreateAsync(client: newClient);
 
             ClientResponseDto? response = _mapper.Map<ClientResponseDto>(source: newClient);
             return CreatedAtAction(actionName: nameof(Get), routeValues: new { id = response.Id }, value: response);
         }
-        catch (MongoWriteException e)
+        catch (Exception e)
         {
-            if (e.WriteError.Category == ServerErrorCategory.DuplicateKey)
-            {
-                return Conflict(error: e.Message);
-            }
-            return BadRequest(error: e.Message);
-        }
-        catch (Exception)
-        {
-            return BadRequest();
+            return BadRequest(e.Message);
         }
     }
 
@@ -124,13 +115,13 @@ public class ClientsController : ControllerBase
     [ProducesResponseType(type: typeof(ClientResponseDto), statusCode: StatusCodes.Status202Accepted)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ClientResponseDto>> Put(string id, [FromBody] ClientRequestNoCpfDto client)
+    public async Task<ActionResult<ClientResponseDto>> Put(int id, [FromBody] ClientRequestNoCpfDto client)
     {
         try
         {
             Client? newClient = _mapper.Map<Client>(source: client);
 
-            newClient = await _clientService.UpdateAsync(client: newClient, Id: id);
+            newClient = await _clientService.UpdateAsync(client: newClient, id: id);
 
             ClientResponseDto? response = _mapper.Map<ClientResponseDto>(source: newClient);
 

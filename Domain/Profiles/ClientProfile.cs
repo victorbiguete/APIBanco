@@ -9,9 +9,12 @@ public class ClientProfile : Profile
 {
     public ClientProfile()
     {
-        CreateMap<Client, ClientResponseDto>().AfterMap((src, dest) => dest.Adress = "/api/adress/cpf/" + src.Cpf);
-        CreateMap<ClientRequestDto, Client>().ReverseMap();
-        CreateMap<Client, ClientRequestNoCpfDto>().ReverseMap();
+        CreateMap<Client, ClientResponseDto>();
+        CreateMap<ClientRequestDto, Client>().AfterMap((src, dest) =>
+        {
+            dest.Adress.Cpf = src.Cpf;
+        });
+        CreateMap<Client, ClientRequestNoCpfDto>();
     }
 
 }

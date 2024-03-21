@@ -2,14 +2,12 @@ namespace APIBanco.Domain.Dtos;
 
 public class AdressResponseDto
 {
-    public string Id { get; set; } = null!;
-    public int Cpf { get; set; }
+    public int Id { get; set; }
+    // public ulong Cpf { get; set; }
     public int ZipCode { get; set; }
     public string Street { get; set; } = null!;
     public int HouseNumber { get; set; }
     public string Neighborhood { get; set; } = null!;
     public string City { get; set; } = null!;
     public string UF { get; set; } = null!;
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
 }

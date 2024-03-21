@@ -7,16 +7,16 @@ public class ClientRequestNoCpfDto
     [Required]
     public string Name { get; set; } = null!;
 
-    [DataType(dataType: DataType.EmailAddress)]
     [Required]
+    [EmailAddress]
     public string Email { get; set; } = null!;
 
     [Required]
-    [MinLength(length: 8)]
+    [DataType(dataType: DataType.Password)]
     public string Password { get; set; } = null!;
 
     [Required]
-    public int PhoneNumber { get; set; }
+    public string PhoneNumber { get; set; } = null!;
 
     [DataType(dataType: DataType.Date)]
     [Required]

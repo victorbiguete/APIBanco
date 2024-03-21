@@ -1,54 +1,40 @@
-using Microsoft.Extensions.Options;
-using MongoDB.Driver;
-using MongoDB.Bson;
-
 using APIBanco.Domain.Models;
+using APIBanco.Domain.Contexts;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Castle.Components.DictionaryAdapter.Xml;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace APIBanco.Services;
 
 public class ClientService
 {
-    private IMongoCollection<Client> _clients;
+    private readonly AppDbContext _dbContext;
 
-    private BankAccountService _bankAccountService;
-    private AdressService _adressService;
-
-    public ClientService(IOptions<MongoDBSettings> settings, BankAccountService bankAccountService, AdressService adressService)
+    public ClientService(AppDbContext dbContext)
     {
-        MongoClient? client = new MongoClient(connectionString: settings.Value.ConnectionURI);
-        IMongoDatabase? database = client.GetDatabase(name: settings.Value.DatabaseName);
-        _clients = database.GetCollection<Client>(name: settings.Value.CollectionClient);
-
-        // make  cpf be unique
-        IndexKeysDefinition<Client>? indexKeysDefinition = Builders<Client>.IndexKeys.Ascending(field: x => x.Cpf);
-        CreateIndexOptions indexOptions = new CreateIndexOptions { Unique = true };
-        CreateIndexModel<Client> indexModel = new CreateIndexModel<Client>(keys: indexKeysDefinition, options: indexOptions);
-        _clients.Indexes.CreateOne(model: indexModel);
-
-        _bankAccountService = bankAccountService;
-        _adressService = adressService;
+        _dbContext = dbContext;
     }
 
     public async Task<List<Client>> GetAsync()
     {
-        return await _clients.Find(filter: client => true).ToListAsync();
+        return await _dbContext.Clients.ToListAsync();
     }
 
-    public async Task<Client> GetAsync(string Id)
+    public async Task<Client> GetByIdAsync(int id)
     {
-        FilterDefinition<Client>? filter = Builders<Client>.Filter.Eq(field: "_id", value: ObjectId.Parse(s: Id));
-        Client? response = await _clients.Find(filter: filter).FirstOrDefaultAsync();
+        Client? response = await _dbContext.Clients.AsQueryable().Where(predicate: x => x.Id == id).FirstOrDefaultAsync();
 
         if (response == null)
-            throw new KeyNotFoundException("Client not found: " + Id);
+            throw new KeyNotFoundException("Client not found: " + id);
 
         return response;
     }
 
-    public async Task<Client> GetAsync(int cpf)
+    public async Task<Client> GetByCpfAsync(ulong cpf)
     {
-        FilterDefinition<Client>? filter = Builders<Client>.Filter.Eq(field: client => client.Cpf, value: cpf);
-        Client? response = await _clients.Find(filter: filter).FirstOrDefaultAsync();
+        Client? response = await _dbContext.Clients.AsQueryable().Where(predicate: x => x.Cpf == cpf).FirstOrDefaultAsync();
 
         if (response == null)
             throw new KeyNotFoundException("Client not found: " + cpf);
@@ -56,28 +42,31 @@ public class ClientService
         return response;
     }
 
-    public async Task<Client> CreateAsync(Client client, Adress adress)
+    public async Task<Client> CreateAsync(Client client)
     {
-        await _clients.InsertOneAsync(document: client);
+        client.BankAccount = new BankAccount();
+        client.BankAccount.Cpf = client.Cpf;
+        EntityEntry<Client>? res = await _dbContext.Clients.AddAsync(client);
+        await _dbContext.SaveChangesAsync();
+        // catch (DbUpdateException ex)
+        //     {
 
-        // create  a bank account for the client
-        BankAccount bankAccount = new BankAccount(cpf: client.Cpf);
-        await _bankAccountService.CreateAsync(bankAccount: bankAccount);
+        //         if (ex.InnerException is SqlException sqlEx && sqlEx.Number == 2627)
+        //         {
 
-        // create adres
-        adress.Cpf = client.Cpf;
-        await _adressService.CreateAsync(adress: adress);
+        //             Console.WriteLine("Conflito de chave primária detectado.");
+        //         }
+        //     }
 
         return client;
     }
 
-    public async Task<Client> UpdateAsync(Client client, string Id)
+    public async Task<Client> UpdateAsync(Client client, int id)
     {
-        FilterDefinition<Client>? filter = Builders<Client>.Filter.Eq(field: "_id", value: ObjectId.Parse(s: Id));
-        Client? oldClient = await _clients.Find(filter: filter).FirstOrDefaultAsync();
+        Client? oldClient = await _dbContext.Clients.AsQueryable().Where(predicate: x => x.Id == id).FirstOrDefaultAsync();
 
         if (oldClient == null)
-            throw new KeyNotFoundException("Client not found: " + Id);
+            throw new KeyNotFoundException("Client not found: " + id);
 
         oldClient.UpdatedAt = DateTime.Now;
         oldClient.Name = client.Name;
@@ -85,15 +74,11 @@ public class ClientService
         oldClient.Password = client.Password;
         oldClient.PhoneNumber = client.PhoneNumber;
         oldClient.BornDate = client.BornDate;
+        // oldClient.Adress = client.Adress;
 
-        await _clients.ReplaceOneAsync(filter: filter, replacement: oldClient);
+        _dbContext.Clients.Update(oldClient);
+        await _dbContext.SaveChangesAsync();
 
         return oldClient;
-    }
-
-    public async Task<long> Length()
-    {
-        long lenght = await _clients.CountDocumentsAsync(filter: new BsonDocument());
-        return lenght;
     }
 }

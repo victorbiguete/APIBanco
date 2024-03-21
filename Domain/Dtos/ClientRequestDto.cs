@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace APIBanco.Domain.Dtos;
@@ -5,26 +6,24 @@ namespace APIBanco.Domain.Dtos;
 public class ClientRequestDto
 {
     [Required]
-    [RegularExpression(pattern: @"^\d{11}$")]
-    public int Cpf { get; set; }
+    public ulong Cpf { get; set; }
 
     [Required]
     public string Name { get; set; } = null!;
 
-    [DataType(dataType: DataType.EmailAddress)]
     [Required]
+    [EmailAddress]
     public string Email { get; set; } = null!;
 
     [Required]
-    [MinLength(length: 8)]
+    [DataType(dataType: DataType.Password)]
     public string Password { get; set; } = null!;
 
-    [DataType(dataType: DataType.PhoneNumber)]
     [Required]
-    public int PhoneNumber { get; set; }
+    public string PhoneNumber { get; set; } = null!;
 
-    [DataType(dataType: DataType.Date)]
     [Required]
+    [DataType(dataType: DataType.Date)]
     public DateTime BornDate { get; set; }
 
     [Required]

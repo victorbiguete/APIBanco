@@ -1,13 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
-
-using MongoDB.Bson;
-using MongoDB.Driver;
 using AutoMapper;
 
 using APIBanco.Domain.Models;
 using APIBanco.Domain.Dtos;
 using APIBanco.Services;
-using APIBanco.Domain.Enums;
 
 namespace APIBanco.Controllers;
 
@@ -44,11 +40,11 @@ public class AdressController : ControllerBase
     [ProducesResponseType(type: typeof(AdressResponseDto), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IEnumerable<AdressResponseDto>>> Get(string id)
+    public async Task<ActionResult<IEnumerable<AdressResponseDto>>> GetById(int id)
     {
         try
         {
-            Adress? adress = await _adressService.GetAsync(Id: id);
+            Adress? adress = await _adressService.GetByIdAsync(id: id);
             AdressResponseDto? response = _mapper.Map<AdressResponseDto>(source: adress);
             return Ok(response);
         }
@@ -65,12 +61,12 @@ public class AdressController : ControllerBase
     [ProducesResponseType(type: typeof(AdressResponseDto), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IEnumerable<AdressResponseDto>>> Get(int cpf)
+    public async Task<ActionResult<AdressResponseDto>> GetByCpf(ulong cpf)
     {
         try
         {
-            IEnumerable<Adress>? adress = await _adressService.GetAsync(cpf: cpf);
-            IEnumerable<AdressResponseDto>? response = _mapper.Map<IEnumerable<AdressResponseDto>>(source: adress);
+            Adress? adress = await _adressService.GetByCpfAsync(cpf: cpf);
+            AdressResponseDto? response = _mapper.Map<AdressResponseDto>(source: adress);
             return Ok(value: response);
         }
         catch (KeyNotFoundException e)
@@ -86,7 +82,7 @@ public class AdressController : ControllerBase
     [HttpPost(template: "{cpf}")]
     [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<AdressResponseDto>> Post(int cpf, [FromBody] AdressRequestDto adress)
+    public async Task<ActionResult<AdressResponseDto>> Post(ulong cpf, [FromBody] AdressRequestDto adress)
     {
         try
         {
@@ -108,7 +104,7 @@ public class AdressController : ControllerBase
     [ProducesResponseType(type: typeof(AdressResponseDto), statusCode: StatusCodes.Status202Accepted)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<AdressResponseDto>> Put(string id, [FromBody] AdressRequestDto adress)
+    public async Task<ActionResult<AdressResponseDto>> Put(int id, [FromBody] AdressRequestDto adress)
     {
         try
         {
@@ -133,11 +129,11 @@ public class AdressController : ControllerBase
     [HttpDelete(template: "{id}")]
     [ProducesResponseType(statusCode: StatusCodes.Status202Accepted)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult> Delete(string id)
+    public async Task<ActionResult> Delete(int id)
     {
         try
         {
-            await _adressService.DeleteAsync(Id: id);
+            await _adressService.DeleteAsync(id: id);
             return Accepted();
         }
         catch (Exception e)

@@ -7,5 +7,5 @@ public class TransactionRequestDto
     [Required]
     public decimal Value { get; set; }
 
-    public string Description { get; set; } = string.Empty;
+    public string? Description { get; set; }
 }

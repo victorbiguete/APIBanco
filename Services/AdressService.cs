@@ -1,51 +1,43 @@
 using Microsoft.Extensions.Options;
-using MongoDB.Driver;
-using MongoDB.Bson;
 
 using APIBanco.Domain.Models;
-using ZstdSharp;
+using APIBanco.Domain.Contexts;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace APIBanco.Services;
 
 public class AdressService
 {
-    private IMongoCollection<Adress> _adress;
+    private AppDbContext _dbContext;
 
-    public AdressService(IOptions<MongoDBSettings> mongoDBSettings)
+    public AdressService(AppDbContext dbContext)
     {
-        MongoClient? mongoClient = new MongoClient(connectionString: mongoDBSettings.Value.ConnectionURI);
-        IMongoDatabase? mongoDatabase = mongoClient.GetDatabase(name: mongoDBSettings.Value.DatabaseName);
-        _adress = mongoDatabase.GetCollection<Adress>(name: mongoDBSettings.Value.CollectionAdresses);
-
-        // make  cpf be unique
-        IndexKeysDefinition<Adress>? indexKeysDefinition = Builders<Adress>.IndexKeys.Ascending(field: x => x.Cpf);
-        CreateIndexOptions indexOptions = new CreateIndexOptions { Unique = true };
-        CreateIndexModel<Adress> indexModel = new CreateIndexModel<Adress>(keys: indexKeysDefinition, options: indexOptions);
-        _adress.Indexes.CreateOne(model: indexModel);
+        _dbContext = dbContext;
     }
 
     public async Task<IEnumerable<Adress>> GetAsync()
     {
-        return await _adress.Find(filter: adress => true).ToListAsync();
+        List<Adress>? response = await _dbContext.Adresses.ToListAsync();
+
+        return response;
     }
 
-    public async Task<Adress> GetAsync(string Id)
+    public async Task<Adress> GetByIdAsync(int id)
     {
-        FilterDefinition<Adress>? filter = Builders<Adress>.Filter.Eq(field: "_id", value: ObjectId.Parse(s: Id));
-        Adress? adress = await _adress.Find(filter: filter).FirstOrDefaultAsync();
+        Adress? response = await _dbContext.Adresses.AsQueryable().Where(predicate: x => x.Id == id).FirstOrDefaultAsync();
 
-        if (adress == null)
-            throw new KeyNotFoundException("Adress not found: " + Id);
+        if (response == null)
+            throw new KeyNotFoundException("Adress not found: " + id);
 
-        return adress;
+        return response;
     }
 
-    public async Task<IEnumerable<Adress>> GetAsync(int cpf)
+    public async Task<Adress> GetByCpfAsync(ulong cpf)
     {
-        FilterDefinition<Adress>? filter = Builders<Adress>.Filter.Eq(field: "Cpf", value: cpf);
-        List<Adress>? response = await _adress.Find(filter: filter).ToListAsync();
+        Adress? response = await _dbContext.Adresses.AsQueryable().Where(predicate: x => x.Cpf == cpf).FirstOrDefaultAsync();
 
-        if (response.Count == 0)
+        if (response == null)
             throw new KeyNotFoundException("Adress not found: " + cpf);
 
         return response;
@@ -53,14 +45,15 @@ public class AdressService
 
     public async Task<Adress> CreateAsync(Adress adress)
     {
-        await _adress.InsertOneAsync(document: adress);
+        await _dbContext.Adresses.AddAsync(adress);
+        _dbContext.SaveChanges();
+
         return adress;
     }
 
     public async Task<Adress> UpdateAsync(Adress adress)
     {
-        FilterDefinition<Adress>? filter = Builders<Adress>.Filter.Eq(field: "_id", value: ObjectId.Parse(s: adress.Id));
-        Adress? oldAdress = await _adress.Find(filter: filter).FirstOrDefaultAsync();
+        Adress? oldAdress = await _dbContext.Adresses.AsQueryable().Where(predicate: x => x.Id == adress.Id).FirstOrDefaultAsync();
 
         if (oldAdress == null)
             throw new KeyNotFoundException("Adress not found: " + adress.Id);
@@ -69,20 +62,15 @@ public class AdressService
         adress.Cpf = oldAdress.Cpf;
         adress.UpdatedAt = DateTime.Now;
 
-        await _adress.ReplaceOneAsync(filter: filter, replacement: adress);
+        _dbContext.Adresses.Update(adress);
+        await _dbContext.SaveChangesAsync();
 
         return adress;
     }
 
-    public async Task DeleteAsync(string Id)
+    public async Task DeleteAsync(int id)
     {
-        FilterDefinition<Adress>? filter = Builders<Adress>.Filter.Eq(field: "_id", value: ObjectId.Parse(s: Id));
-        await _adress.DeleteOneAsync(filter: filter);
-    }
-
-    public async Task<long> Length()
-    {
-        long lenght = await _adress.CountDocumentsAsync(filter: new BsonDocument());
-        return lenght;
+        await _dbContext.Adresses.Where(predicate: x => x.Id == id).ExecuteDeleteAsync();
+        await _dbContext.SaveChangesAsync();
     }
 }

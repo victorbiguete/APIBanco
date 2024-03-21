@@ -1,36 +1,29 @@
-using Microsoft.Extensions.Options;
-using MongoDB.Driver;
-using MongoDB.Bson;
-
 using APIBanco.Domain.Models;
 using APIBanco.Domain.Enums;
+using APIBanco.Domain.Contexts;
+using Microsoft.EntityFrameworkCore;
 
 namespace APIBanco.Services;
 
 public class TransactionsService
 {
-    private IMongoCollection<Transactions> _transactions;
-
+    private readonly AppDbContext _dbContext;
     private BankAccountService _bankAccountService;
 
-    public TransactionsService(IOptions<MongoDBSettings> settings, BankAccountService bankAccountService)
+    public TransactionsService(AppDbContext dbContext, BankAccountService bankAccountService)
     {
-        MongoClient? cliente = new MongoClient(connectionString: settings.Value.ConnectionURI);
-        IMongoDatabase? database = cliente.GetDatabase(name: settings.Value.DatabaseName);
-        _transactions = database.GetCollection<Transactions>(name: settings.Value.CollectionTransactions);
-
+        _dbContext = dbContext;
         _bankAccountService = bankAccountService;
     }
 
     public async Task<IEnumerable<Transactions>> GetAsync()
     {
-        return await _transactions.Find(filter: _ => true).ToListAsync();
+        return await _dbContext.Transactions.ToListAsync();
     }
 
-    public async Task<Transactions> GetAsync(string Id)
+    public async Task<Transactions> GetByIdAsync(int Id)
     {
-        FilterDefinition<Transactions>? filter = Builders<Transactions>.Filter.Eq(field: "_id", value: ObjectId.Parse(s: Id));
-        Transactions? response = await _transactions.Find(filter: filter).FirstOrDefaultAsync();
+        Transactions? response = await _dbContext.Transactions.AsQueryable().Where(predicate: x => x.Id == Id).FirstOrDefaultAsync();
 
         if (response == null)
             throw new KeyNotFoundException("Transaction not found: " + Id);
@@ -45,36 +38,17 @@ public class TransactionsService
             LessThen = DateTime.Now;
         }
 
-        FilterDefinition<Transactions>? filter = Builders<Transactions>.Filter.And(
-            Builders<Transactions>.Filter.Gte(field: "Date", value: GreaterThen),
-            Builders<Transactions>.Filter.Lte(field: "Date", value: LessThen)
-        );
-
-        IEnumerable<Transactions>? response = await _transactions.Find(filter: filter).ToListAsync();
+        List<Transactions>? response = await _dbContext.Transactions
+            .AsQueryable()
+            .Where(x => x.Date >= GreaterThen && x.Date <= LessThen)
+            .ToListAsync();
 
         return response;
     }
 
-    public async Task<IEnumerable<Transactions>> GetAsync(int Cpf)
+    public async Task<IEnumerable<Transactions>> GetByCpfAsync(ulong Cpf)
     {
-        FilterDefinition<Transactions>? filter = Builders<Transactions>.Filter.Eq(field: transaction => transaction.Cpf, value: Cpf);
-        return await _transactions.Find(filter: filter).ToListAsync();
-    }
-
-    public async Task<IEnumerable<Transactions>> GetAsync(int Cpf, DateTime GreaterThen, DateTime? LessThen)
-    {
-        if (LessThen == null)
-        {
-            LessThen = DateTime.Now;
-        }
-
-        FilterDefinition<Transactions>? filter = Builders<Transactions>.Filter.And(
-            Builders<Transactions>.Filter.Gte(field: "Date", value: GreaterThen),
-            Builders<Transactions>.Filter.Lte(field: "Date", value: LessThen),
-            Builders<Transactions>.Filter.Eq(field: "Cpf", value: Cpf)
-        );
-
-        List<Transactions>? response = await _transactions.Find(filter: filter).ToListAsync();
+        var response = await _dbContext.Transactions.AsQueryable().Where(x => x.Cpf == Cpf).ToListAsync();
 
         if (response.Count == 0)
             throw new KeyNotFoundException("Transactions not found: " + Cpf);
@@ -82,32 +56,56 @@ public class TransactionsService
         return response;
     }
 
-    public async Task<Transactions> CreateAsync(Transactions Transaction, int Source)
+    public async Task<IEnumerable<Transactions>> GetAsync(ulong Cpf, DateTime GreaterThen, DateTime? LessThen)
     {
-        IEnumerable<BankAccount>? bankAccount = await _bankAccountService.GetAsync(Cpf: Source);
+        if (LessThen == null)
+        {
+            LessThen = DateTime.Now;
+        }
+
+        List<Transactions>? response = await _dbContext.Transactions
+            .AsQueryable()
+            .Where(x => x.Cpf == Cpf && x.Date >= GreaterThen && x.Date <= LessThen)
+            .ToListAsync();
+
+        if (response.Count == 0)
+            throw new KeyNotFoundException("Transactions not found: " + Cpf);
+
+        return response;
+    }
+
+    public async Task<Transactions> CreateAsync(Transactions Transaction, ulong Source)
+    {
+        BankAccount? bankAccount = await _bankAccountService.GetByCpfAsync(Cpf: Source);
 
         if (Transaction.Type == TransactionType.Deposit)
-            bankAccount.First().Deposit(value: Transaction.Value);
+            bankAccount.Deposit(value: Transaction.Value);
         if (Transaction.Type == TransactionType.Withdraw)
-            bankAccount.First().Withdraw(value: Transaction.Value);
+            bankAccount.Withdraw(value: Transaction.Value);
 
-        await _bankAccountService.UpdateAsync(bankAccount: bankAccount.First());
+        await _bankAccountService.UpdateAsync(bankAccount: bankAccount);
 
-        await _transactions.InsertOneAsync(document: Transaction);
+        Transaction.BankAccountId = bankAccount.Id;
+
+        await _dbContext.Transactions.AddAsync(Transaction);
+        await _dbContext.SaveChangesAsync();
+
         return Transaction;
     }
 
-    public async Task<Transactions> CreateAsync(Transactions Transaction, int Source, int Target)
+    public async Task<Transactions> CreateAsync(Transactions Transaction, ulong Source, ulong Target)
     {
-        IEnumerable<BankAccount>? bankAccountSource = await _bankAccountService.GetAsync(Cpf: Source);
-        IEnumerable<BankAccount>? bankAccountTarget = await _bankAccountService.GetAsync(Cpf: Target);
+        BankAccount? bankAccountSource = await _bankAccountService.GetByCpfAsync(Cpf: Source);
+        BankAccount? bankAccountTarget = await _bankAccountService.GetByCpfAsync(Cpf: Target);
 
-        bankAccountSource.First().Transfer(destiny: bankAccountTarget.First(), value: Transaction.Value);
+        bankAccountSource.Transfer(destiny: bankAccountTarget, value: Transaction.Value);
 
-        await _bankAccountService.UpdateAsync(bankAccount: bankAccountSource.First());
-        await _bankAccountService.UpdateAsync(bankAccount: bankAccountTarget.First());
+        await _bankAccountService.UpdateAsync(bankAccount: bankAccountSource);
+        await _bankAccountService.UpdateAsync(bankAccount: bankAccountTarget);
 
-        await _transactions.InsertOneAsync(document: Transaction);
+        Transaction.BankAccountId = bankAccountSource.Id;
+        await _dbContext.Transactions.AddAsync(Transaction);
+        await _dbContext.SaveChangesAsync();
 
         Transactions transactionTarget = new Transactions(
             cpf: Target,
@@ -116,15 +114,11 @@ public class TransactionsService
             type: TransactionType.TransferIncome
         );
 
-        await _transactions.InsertOneAsync(document: transactionTarget);
+        transactionTarget.BankAccountId = bankAccountTarget.Id;
+
+        await _dbContext.Transactions.AddAsync(transactionTarget);
+        await _dbContext.SaveChangesAsync();
 
         return Transaction;
     }
-
-    public async Task<long> Length()
-    {
-        long lenght = await _transactions.CountDocumentsAsync(filter: new BsonDocument());
-        return lenght;
-    }
-
 }

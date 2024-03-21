@@ -1,22 +1,29 @@
 using APIBanco.Services;
+using APIBanco.Domain.Contexts;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using APIBanco.Domain.Models;
-using APIBanco.Domain.Profiles;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// mongoDB
-builder.Services.Configure<MongoDBSettings>(builder.Configuration.GetSection("MongoDB"));
-builder.Services.AddSingleton<ClientService>();
-builder.Services.AddSingleton<BankAccountService>();
-builder.Services.AddSingleton<TransactionsService>();
-builder.Services.AddSingleton<AdressService>();
+var defaultConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseLazyLoadingProxies().UseSqlite(defaultConnectionString);
+});
+builder.Services.AddScoped<IdentityDbContext>();
+builder.Services.AddScoped<ClientService>();
+builder.Services.AddScoped<BankAccountService>();
+builder.Services.AddScoped<TransactionsService>();
+builder.Services.AddScoped<AdressService>();
 
 // autoMapper
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 
 // Add services to the container.
-
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

@@ -1,57 +1,34 @@
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
-
-using System.Text.Json.Serialization;
-
+using System.ComponentModel.DataAnnotations;
 using APIBanco.Domain.Enums;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 
 namespace APIBanco.Domain.Models;
 
-[BsonIgnoreExtraElements]
 public class BankAccount
 {
-    [BsonId]
-    [BsonRepresentation(representation: BsonType.ObjectId)]
-    [JsonPropertyName(name: "id")]
-    public string Id { get; set; } = null!;
-
-    [BsonElement(elementName: "cpf")]
-    [JsonPropertyName(name: "cpf")]
-    public int Cpf { get; set; }
-
-    [BsonElement(elementName: "balance")]
-    [JsonPropertyName(name: "balance")]
-    public decimal Balance { get; set; }
-
-    [BsonElement(elementName: "status")]
-    [JsonPropertyName(name: "status")]
+    [Key]
+    [Required]
+    public int Id { get; set; }
+    public ulong Cpf { get; set; }
+    public decimal Balance { get; set; } = 0;
+    public virtual List<Transactions> Transactions { get; set; } = new List<Transactions>();
     public AccountStatus Status { get; set; } = AccountStatus.Active;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-    [BsonElement(elementName: "created_at")]
-    [JsonPropertyName(name: "created_at")]
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
-
-    [BsonElement(elementName: "updated_at")]
-    [JsonPropertyName(name: "updated_at")]
-    public DateTime UpdatedAt { get; set; } = DateTime.Now;
-
-    public BankAccount(int cpf)
-    {
-        this.Cpf = cpf;
-        this.Balance = 0;
-        this.Status = AccountStatus.Active;
-    }
+    public int? ClientId { get; set; }
+    public virtual Client Client { get; set; } = null!;
 
     public void StatusCheck()
     {
         if (this.Status == AccountStatus.Blocked)
-            throw new Exception(message: "Account Blocked: " + this.Cpf);
+            throw new Exception(message: "Account Blocked.");
 
         if (this.Status == AccountStatus.Inactive)
-            throw new Exception(message: "Account Inactive: " + this.Cpf);
+            throw new Exception(message: "Account Inactive.");
 
         if (this.Status == AccountStatus.Closed)
-            throw new Exception(message: "Account Closed: " + this.Cpf);
+            throw new Exception(message: "Account Closed.");
     }
 
     public bool Deposit(decimal value)
@@ -59,6 +36,8 @@ public class BankAccount
         this.StatusCheck();
 
         this.Balance += value;
+
+        this.UpdatedAt = DateTime.UtcNow;
 
         return true;
     }
@@ -68,9 +47,11 @@ public class BankAccount
         this.StatusCheck();
 
         if (this.Balance - value < 0)
-            throw new ArgumentOutOfRangeException(paramName: "Balance Insufficient: " + this.Cpf);
+            throw new ArgumentOutOfRangeException(paramName: "Balance Insufficient.");
 
         this.Balance -= value;
+
+        this.UpdatedAt = DateTime.UtcNow;
 
         return true;
     }
