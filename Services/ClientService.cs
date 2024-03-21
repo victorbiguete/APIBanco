@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Castle.Components.DictionaryAdapter.Xml;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using APIBanco.Domain.Dtos;
+using Microsoft.AspNetCore.Mvc;
 
 namespace APIBanco.Services;
 
@@ -17,63 +19,70 @@ public class ClientService
         _dbContext = dbContext;
     }
 
+    public async Task<string> LoginAsync(ClientLoginRequestDto client)
+    {
+        JwtService _jwtService = new JwtService();
+
+        Client? user = await _dbContext.Clients.AsQueryable().Where(predicate: x => x.Cpf == client.Cpf && x.Password == client.Password).FirstOrDefaultAsync();
+
+        if (user == null)
+        {
+            throw new KeyNotFoundException("Cpf or Password not correct.");
+        }
+
+        string? token = _jwtService.GenerateToken(user);
+
+        return token;
+    }
+
     public async Task<List<Client>> GetAsync()
     {
         return await _dbContext.Clients.ToListAsync();
     }
 
-    public async Task<Client> GetByIdAsync(int id)
+    public async Task<Client> GetByIdAsync(int Id)
     {
-        Client? response = await _dbContext.Clients.AsQueryable().Where(predicate: x => x.Id == id).FirstOrDefaultAsync();
+        Client? response = await _dbContext.Clients.AsQueryable().Where(predicate: x => x.Id == Id).FirstOrDefaultAsync();
 
         if (response == null)
-            throw new KeyNotFoundException("Client not found: " + id);
+            throw new KeyNotFoundException("Client not found: " + Id);
 
         return response;
     }
 
-    public async Task<Client> GetByCpfAsync(ulong cpf)
+    public async Task<Client> GetByCpfAsync(ulong Cpf)
     {
-        Client? response = await _dbContext.Clients.AsQueryable().Where(predicate: x => x.Cpf == cpf).FirstOrDefaultAsync();
+        Client? response = await _dbContext.Clients.AsQueryable().Where(predicate: x => x.Cpf == Cpf).FirstOrDefaultAsync();
 
         if (response == null)
-            throw new KeyNotFoundException("Client not found: " + cpf);
+            throw new KeyNotFoundException("Client not found: " + Cpf);
 
         return response;
     }
 
-    public async Task<Client> CreateAsync(Client client)
+    public async Task<Client> CreateAsync(Client Client)
     {
-        client.BankAccount = new BankAccount();
-        client.BankAccount.Cpf = client.Cpf;
-        EntityEntry<Client>? res = await _dbContext.Clients.AddAsync(client);
+        Client.BankAccount = new BankAccount();
+        Client.BankAccount.Cpf = Client.Cpf;
+        EntityEntry<Client>? res = await _dbContext.Clients.AddAsync(Client);
         await _dbContext.SaveChangesAsync();
-        // catch (DbUpdateException ex)
-        //     {
 
-        //         if (ex.InnerException is SqlException sqlEx && sqlEx.Number == 2627)
-        //         {
-
-        //             Console.WriteLine("Conflito de chave primária detectado.");
-        //         }
-        //     }
-
-        return client;
+        return Client;
     }
 
-    public async Task<Client> UpdateAsync(Client client, int id)
+    public async Task<Client> UpdateAsync(Client Client, int Id)
     {
-        Client? oldClient = await _dbContext.Clients.AsQueryable().Where(predicate: x => x.Id == id).FirstOrDefaultAsync();
+        Client? oldClient = await _dbContext.Clients.AsQueryable().Where(predicate: x => x.Id == Id).FirstOrDefaultAsync();
 
         if (oldClient == null)
-            throw new KeyNotFoundException("Client not found: " + id);
+            throw new KeyNotFoundException("Client not found: " + Id);
 
         oldClient.UpdatedAt = DateTime.Now;
-        oldClient.Name = client.Name;
-        oldClient.Email = client.Email;
-        oldClient.Password = client.Password;
-        oldClient.PhoneNumber = client.PhoneNumber;
-        oldClient.BornDate = client.BornDate;
+        oldClient.Name = Client.Name;
+        oldClient.Email = Client.Email;
+        oldClient.Password = Client.Password;
+        oldClient.PhoneNumber = Client.PhoneNumber;
+        oldClient.BornDate = Client.BornDate;
         // oldClient.Adress = client.Adress;
 
         _dbContext.Clients.Update(oldClient);

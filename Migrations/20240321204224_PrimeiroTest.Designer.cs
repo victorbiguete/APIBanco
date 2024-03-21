@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace APIBanco.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240321164301_TestingEndPointsV1")]
-    partial class TestingEndPointsV1
+    [Migration("20240321204224_PrimeiroTest")]
+    partial class PrimeiroTest
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

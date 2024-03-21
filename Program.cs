@@ -4,20 +4,51 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using APIBanco.Domain.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var defaultConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    options.UseLazyLoadingProxies().UseSqlite(defaultConnectionString);
-});
 builder.Services.AddScoped<IdentityDbContext>();
 builder.Services.AddScoped<ClientService>();
 builder.Services.AddScoped<BankAccountService>();
 builder.Services.AddScoped<TransactionsService>();
 builder.Services.AddScoped<AdressService>();
+
+// DbContext , EntityFramework , Sqlite
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    string? defaultConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    options.UseLazyLoadingProxies().UseSqlite(defaultConnectionString);
+});
+
+// Jwt
+builder.Services.Configure<JwtConfig>(builder.Configuration.GetSection("JwtConfig"));
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(jwt =>
+{
+    var key = Encoding.ASCII.GetBytes(builder.Configuration["JwtConfig:Secret"]);
+
+    jwt.SaveToken = true;
+    jwt.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        ValidateLifetime = true,
+        RequireExpirationTime = false
+    };
+});
+builder.Services.AddDefaultIdentity<IdentityUser>(Options => Options.SignIn.RequireConfirmedAccount = true)
+    .AddEntityFrameworkStores<IdentityDbContext>();
 
 // autoMapper
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
@@ -39,6 +70,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// Jwt
+app.UseAuthentication();
 
 app.UseAuthorization();
 

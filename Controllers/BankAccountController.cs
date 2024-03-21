@@ -9,7 +9,7 @@ using APIBanco.Domain.Enums;
 namespace APIBanco.Controllers;
 
 [ApiController]
-[Route(template: "api/bankaccounts")]
+[Route(template: "api/[controller]")]
 public class BankAccountController : ControllerBase
 {
     private readonly BankAccountService _bankAccountService;
@@ -31,11 +31,17 @@ public class BankAccountController : ControllerBase
         {
             IEnumerable<BankAccount>? BackAccount = await _bankAccountService.GetAsync();
             IEnumerable<BankAccountResponseDto>? response = _mapper.Map<IEnumerable<BankAccountResponseDto>>(source: BackAccount);
-            return Ok(value: response);
+            return Ok(new ApiTaskSuccess
+            {
+                Content = response
+            });
         }
         catch (Exception e)
         {
-            return BadRequest(error: e.Message);
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
     }
 
@@ -49,15 +55,24 @@ public class BankAccountController : ControllerBase
         {
             BankAccount? BackAccount = await _bankAccountService.GetByIdAsync(id: id);
             BankAccountResponseDto? response = _mapper.Map<BankAccountResponseDto>(source: BackAccount);
-            return Ok(value: response);
+            return Ok(new ApiTaskSuccess
+            {
+                Content = response
+            });
         }
         catch (KeyNotFoundException e)
         {
-            return NotFound(e.Message);
+            return NotFound(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
         catch (Exception e)
         {
-            return BadRequest(error: e.Message);
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
     }
 
@@ -71,15 +86,24 @@ public class BankAccountController : ControllerBase
         {
             BankAccount? BackAccount = await _bankAccountService.GetByCpfAsync(Cpf: cpf);
             BankAccountResponseDto? response = _mapper.Map<BankAccountResponseDto>(source: BackAccount);
-            return Ok(value: response);
+            return Ok(new ApiTaskSuccess
+            {
+                Content = response
+            });
         }
         catch (KeyNotFoundException e)
         {
-            return NotFound(e.Message);
+            return NotFound(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
         catch (Exception e)
         {
-            return BadRequest(error: e.Message);
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
     }
 
@@ -89,18 +113,34 @@ public class BankAccountController : ControllerBase
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Put([FromBody] AccountStatus AcountStatus, int id)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = ModelState.Values.SelectMany(x => x.Errors.Select(y => y.ErrorMessage))
+            });
+        }
         try
         {
             BankAccount? response = await _bankAccountService.UpdateStatusAsync(id: id, status: AcountStatus);
-            return Accepted(value: response);
+            return Accepted(new ApiTaskSuccess
+            {
+                Content = response
+            });
         }
         catch (KeyNotFoundException e)
         {
-            return NotFound(e.Message);
+            return NotFound(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
         catch (Exception e)
         {
-            return BadRequest(error: e.Message);
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
     }
 

@@ -5,26 +5,27 @@ using AutoMapper;
 using APIBanco.Domain.Models;
 using APIBanco.Domain.Dtos;
 using APIBanco.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using System.Data.Entity.Infrastructure;
 
 namespace APIBanco.Controller;
 
 [ApiController]
-[Route(template: "api/clients")]
+[Route(template: "api/[controller]")]
 public class ClientsController : ControllerBase
 {
     private readonly ClientService _clientService;
-    private readonly AdressService _adressService;
-
     private readonly IMapper _mapper;
 
-    public ClientsController(ClientService clientService, AdressService adressService, IMapper mapper)
+    public ClientsController(ClientService clientService, IMapper mapper)
     {
         _clientService = clientService;
-        _adressService = adressService;
         _mapper = mapper;
     }
 
     [HttpGet]
+    // [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(type: typeof(IEnumerable<ClientResponseDto>), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<IEnumerable<ClientResponseDto>>> Get()
@@ -50,7 +51,7 @@ public class ClientsController : ControllerBase
     {
         try
         {
-            Client? client = await _clientService.GetByIdAsync(id: id);
+            Client? client = await _clientService.GetByIdAsync(Id: id);
             ClientResponseDto? response = _mapper.Map<ClientResponseDto>(source: client);
 
             return Ok(value: response);
@@ -73,7 +74,7 @@ public class ClientsController : ControllerBase
     {
         try
         {
-            Client? client = await _clientService.GetByCpfAsync(cpf: cpf);
+            Client? client = await _clientService.GetByCpfAsync(Cpf: cpf);
             ClientResponseDto? clientResponse = _mapper.Map<ClientResponseDto>(source: client);
 
             return Ok(value: clientResponse);
@@ -88,26 +89,58 @@ public class ClientsController : ControllerBase
         }
     }
 
-    [HttpPost]
+    [HttpPost("register")]
     [ProducesResponseType(type: typeof(ClientResponseDto), statusCode: StatusCodes.Status201Created)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> Post([FromBody] ClientRequestDto client)
+    public async Task<ActionResult<ClientResponseDto>> Register([FromBody] ClientRequestDto client)
     {
-        System.Console.WriteLine("chamou");
         try
         {
             Client? newClient = _mapper.Map<Client>(source: client);
-            // var newClient = client;
-            System.Console.WriteLine(newClient.ToString());
-            await _clientService.CreateAsync(client: newClient);
+
+            await _clientService.CreateAsync(Client: newClient);
 
             ClientResponseDto? response = _mapper.Map<ClientResponseDto>(source: newClient);
             return CreatedAtAction(actionName: nameof(Get), routeValues: new { id = response.Id }, value: response);
         }
+        catch (DbUpdateException e)
+        {
+            return Conflict(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
+        }
         catch (Exception e)
         {
             return BadRequest(e.Message);
+        }
+    }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] ClientLoginRequestDto login)
+    {
+        try
+        {
+            var response = await _clientService.LoginAsync(client: login);
+            return Ok(new ApiTaskSuccess
+            {
+                Content = response
+            });
+        }
+        catch (KeyNotFoundException e)
+        {
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
+        }
+        catch (Exception e)
+        {
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
     }
 
@@ -121,7 +154,7 @@ public class ClientsController : ControllerBase
         {
             Client? newClient = _mapper.Map<Client>(source: client);
 
-            newClient = await _clientService.UpdateAsync(client: newClient, id: id);
+            newClient = await _clientService.UpdateAsync(Client: newClient, Id: id);
 
             ClientResponseDto? response = _mapper.Map<ClientResponseDto>(source: newClient);
 

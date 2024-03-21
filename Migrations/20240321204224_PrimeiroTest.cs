@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace APIBanco.Migrations
 {
     /// <inheritdoc />
-    public partial class TestingEndPointsV1 : Migration
+    public partial class PrimeiroTest : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

@@ -11,6 +11,8 @@ public class Client
     [Key]
     [Required]
     public int Id { get; set; }
+    [Key]
+    [Required]
     public ulong Cpf { get; set; }
     public string Email { get; set; } = null!;
     public string Password { get; set; } = null!;
@@ -19,6 +21,6 @@ public class Client
     public DateTime BornDate { get; set; }
     public virtual Adress Adress { get; set; } = new Adress();
     public virtual BankAccount BankAccount { get; set; } = new BankAccount();
-    public DateTime CreatedAt { get; set; } = DateTime.Now;
-    public DateTime UpdatedAt { get; set; } = DateTime.Now;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

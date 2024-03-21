@@ -8,7 +8,7 @@ using APIBanco.Services;
 namespace APIBanco.Controllers;
 
 [ApiController]
-[Route("api/adress")]
+[Route("api/[controller]")]
 public class AdressController : ControllerBase
 {
     private readonly AdressService _adressService;
@@ -29,11 +29,17 @@ public class AdressController : ControllerBase
         {
             IEnumerable<Adress>? adress = await _adressService.GetAsync();
             IEnumerable<AdressResponseDto>? response = _mapper.Map<IEnumerable<AdressResponseDto>>(source: adress);
-            return Ok(value: response);
+            return Ok(new ApiTaskSuccess
+            {
+                Content = response
+            });
         }
         catch (Exception e)
         {
-            return BadRequest(error: e.Message);
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
     }
     [HttpGet(template: "id/{id}")]
@@ -46,15 +52,24 @@ public class AdressController : ControllerBase
         {
             Adress? adress = await _adressService.GetByIdAsync(id: id);
             AdressResponseDto? response = _mapper.Map<AdressResponseDto>(source: adress);
-            return Ok(response);
+            return Ok(new ApiTaskSuccess
+            {
+                Content = response
+            });
         }
         catch (KeyNotFoundException e)
         {
-            return NotFound(e.Message);
+            return NotFound(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
         catch (Exception e)
         {
-            return BadRequest(error: e.Message);
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
     }
     [HttpGet(template: "cpf/{cpf}")]
@@ -67,15 +82,24 @@ public class AdressController : ControllerBase
         {
             Adress? adress = await _adressService.GetByCpfAsync(cpf: cpf);
             AdressResponseDto? response = _mapper.Map<AdressResponseDto>(source: adress);
-            return Ok(value: response);
+            return Ok(new ApiTaskSuccess
+            {
+                Content = response
+            });
         }
         catch (KeyNotFoundException e)
         {
-            return NotFound(e.Message);
+            return NotFound(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
         catch (Exception e)
         {
-            return BadRequest(error: e.Message);
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
     }
 
@@ -84,6 +108,13 @@ public class AdressController : ControllerBase
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<AdressResponseDto>> Post(ulong cpf, [FromBody] AdressRequestDto adress)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = ModelState.Values.SelectMany(x => x.Errors.Select(y => y.ErrorMessage))
+            });
+        }
         try
         {
             Adress? newAdress = _mapper.Map<Adress>(source: adress);
@@ -92,11 +123,17 @@ public class AdressController : ControllerBase
             await _adressService.CreateAsync(adress: newAdress);
             AdressResponseDto? response = _mapper.Map<AdressResponseDto>(source: newAdress);
 
-            return CreatedAtAction(actionName: nameof(Get), routeValues: new { id = response.Id }, value: response);
+            return CreatedAtAction(actionName: nameof(Get), routeValues: new { id = response.Id }, value: new ApiTaskSuccess
+            {
+                Content = response
+            });
         }
         catch (Exception e)
         {
-            return BadRequest(error: e.Message);
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
     }
 
@@ -106,6 +143,13 @@ public class AdressController : ControllerBase
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
     public async Task<ActionResult<AdressResponseDto>> Put(int id, [FromBody] AdressRequestDto adress)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = ModelState.Values.SelectMany(x => x.Errors.Select(y => y.ErrorMessage))
+            });
+        }
         try
         {
             Adress? newAdress = _mapper.Map<Adress>(source: adress);
@@ -114,15 +158,24 @@ public class AdressController : ControllerBase
             newAdress = await _adressService.UpdateAsync(adress: newAdress);
 
             AdressResponseDto? response = _mapper.Map<AdressResponseDto>(source: newAdress);
-            return Accepted(value: response);
+            return Accepted(new ApiTaskSuccess
+            {
+                Content = response
+            });
         }
         catch (KeyNotFoundException e)
         {
-            return NotFound(e.Message);
+            return NotFound(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
         catch (Exception e)
         {
-            return BadRequest(error: e.Message);
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
     }
 
@@ -134,11 +187,17 @@ public class AdressController : ControllerBase
         try
         {
             await _adressService.DeleteAsync(id: id);
-            return Accepted();
+            return Accepted(new ApiTaskSuccess
+            {
+                Content = id
+            });
         }
         catch (Exception e)
         {
-            return BadRequest(error: e.Message);
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
     }
 }

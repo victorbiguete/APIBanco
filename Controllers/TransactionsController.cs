@@ -10,7 +10,7 @@ using APIBanco.Domain.Enums;
 namespace APIBanco.Controllers;
 
 [ApiController]
-[Route(template: "api/transactions")]
+[Route(template: "api/[controller]")]
 public class TransactionsController : ControllerBase
 {
     private readonly TransactionsService _transactionsService;
@@ -35,7 +35,10 @@ public class TransactionsController : ControllerBase
             {
                 IEnumerable<Transactions>? list = await _transactionsService.GetAsync();
                 IEnumerable<TransactionResponseDto>? transactions = _mapper.Map<IEnumerable<TransactionResponseDto>>(source: list);
-                return Ok(transactions);
+                return Ok(new ApiTaskSuccess
+                {
+                    Content = transactions
+                });
             }
             else
             {
@@ -52,12 +55,18 @@ public class TransactionsController : ControllerBase
                 IEnumerable<Transactions>? transactions = await _transactionsService.GetAsync(GreaterThen: GreaterThen, LessThen: LessThen);
 
                 IEnumerable<TransactionResponseDto>? response = _mapper.Map<IEnumerable<TransactionResponseDto>>(source: transactions);
-                return Ok(response);
+                return Ok(new ApiTaskSuccess
+                {
+                    Content = response
+                });
             }
         }
         catch (Exception e)
         {
-            return BadRequest(error: e.Message);
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
     }
 
@@ -71,15 +80,24 @@ public class TransactionsController : ControllerBase
         try
         {
             Transactions? response = await _transactionsService.GetByIdAsync(Id: id);
-            return Ok(response);
+            return Ok(new ApiTaskSuccess
+            {
+                Content = response
+            });
         }
         catch (KeyNotFoundException e)
         {
-            return NotFound(e.Message);
+            return NotFound(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
         catch (Exception e)
         {
-            return BadRequest(error: e.Message);
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
     }
 
@@ -95,7 +113,10 @@ public class TransactionsController : ControllerBase
             {
                 IEnumerable<Transactions>? list = await _transactionsService.GetByCpfAsync(Cpf: cpf);
                 IEnumerable<TransactionResponseDto>? transactions = _mapper.Map<IEnumerable<TransactionResponseDto>>(source: list);
-                return Ok(transactions);
+                return Ok(new ApiTaskSuccess
+                {
+                    Content = transactions
+                });
             }
             else
             {
@@ -112,16 +133,25 @@ public class TransactionsController : ControllerBase
                 IEnumerable<Transactions>? transactions = await _transactionsService.GetAsync(Cpf: cpf, GreaterThen: GreaterThen, LessThen: LessThen);
 
                 IEnumerable<TransactionResponseDto>? response = _mapper.Map<IEnumerable<TransactionResponseDto>>(source: transactions);
-                return Ok(response);
+                return Ok(new ApiTaskSuccess
+                {
+                    Content = response
+                });
             }
         }
         catch (KeyNotFoundException e)
         {
-            return NotFound(e.Message);
+            return NotFound(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
         catch (Exception e)
         {
-            return BadRequest(error: e.Message);
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
     }
 
@@ -131,6 +161,13 @@ public class TransactionsController : ControllerBase
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Transactions>> PostDeposity([FromBody] TransactionRequestDto transaction, ulong cpf)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = ModelState.Values.SelectMany(x => x.Errors.Select(y => y.ErrorMessage))
+            });
+        }
         try
         {
             Transactions? newTransaction = _mapper.Map<Transactions>(source: transaction);
@@ -139,15 +176,24 @@ public class TransactionsController : ControllerBase
             newTransaction.Date = DateTime.Now;
             await _transactionsService.CreateAsync(Transaction: newTransaction, Source: cpf);
             TransactionResponseDto? response = _mapper.Map<TransactionResponseDto>(source: newTransaction);
-            return CreatedAtAction(actionName: nameof(Get), routeValues: new { id = response.Id }, value: response);
+            return CreatedAtAction(actionName: nameof(Get), routeValues: new { id = response.Id }, value: new ApiTaskSuccess
+            {
+                Content = response
+            });
         }
         catch (KeyNotFoundException e)
         {
-            return NotFound(e.Message);
+            return NotFound(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
         catch (Exception e)
         {
-            return BadRequest(error: e.Message);
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
     }
 
@@ -157,6 +203,13 @@ public class TransactionsController : ControllerBase
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Transactions>> PostWithdraw([FromBody] TransactionRequestDto transaction, ulong cpf)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = ModelState.Values.SelectMany(x => x.Errors.Select(y => y.ErrorMessage))
+            });
+        }
         try
         {
             Transactions? newTransaction = _mapper.Map<Transactions>(source: transaction);
@@ -165,15 +218,24 @@ public class TransactionsController : ControllerBase
             newTransaction.Date = DateTime.Now;
             await _transactionsService.CreateAsync(Transaction: newTransaction, Source: cpf);
             TransactionResponseDto? response = _mapper.Map<TransactionResponseDto>(source: newTransaction);
-            return CreatedAtAction(actionName: nameof(Get), routeValues: new { id = response.Id }, value: response);
+            return CreatedAtAction(actionName: nameof(Get), routeValues: new { id = response.Id }, value: new ApiTaskSuccess
+            {
+                Content = response
+            });
         }
         catch (KeyNotFoundException e)
         {
-            return NotFound(e.Message);
+            return NotFound(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
         catch (Exception e)
         {
-            return BadRequest(error: e.Message);
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
     }
 
@@ -183,6 +245,13 @@ public class TransactionsController : ControllerBase
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Transactions>> PostTransfer([FromBody] TransactionRequestDto transaction, ulong cpf, ulong cpftarget)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = ModelState.Values.SelectMany(x => x.Errors.Select(y => y.ErrorMessage))
+            });
+        }
         try
         {
             Transactions? newTransaction = _mapper.Map<Transactions>(source: transaction);
@@ -191,15 +260,24 @@ public class TransactionsController : ControllerBase
             newTransaction.Date = DateTime.Now;
             await _transactionsService.CreateAsync(Transaction: newTransaction, Source: cpf, Target: cpftarget);
             TransactionResponseDto? response = _mapper.Map<TransactionResponseDto>(source: newTransaction);
-            return CreatedAtAction(actionName: nameof(Get), routeValues: new { id = response.Id }, value: response);
+            return CreatedAtAction(actionName: nameof(Get), routeValues: new { id = response.Id }, value: new ApiTaskSuccess
+            {
+                Content = response
+            });
         }
         catch (KeyNotFoundException e)
         {
-            return NotFound(e.Message);
+            return NotFound(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
         catch (Exception e)
         {
-            return BadRequest(error: e.Message);
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
     }
 }
