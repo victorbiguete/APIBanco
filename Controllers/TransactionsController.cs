@@ -5,6 +5,8 @@ using APIBanco.Domain.Dtos;
 using APIBanco.Services;
 using AutoMapper;
 using APIBanco.Domain.Enums;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace APIBanco.Controllers;
@@ -25,6 +27,8 @@ public class TransactionsController : ControllerBase
 
 
     [HttpGet]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(type: typeof(IEnumerable<TransactionResponseDto>), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<IEnumerable<TransactionResponseDto>>> Get([FromQuery(Name = "g")] int? g, [FromQuery(Name = "l")] int? l)
@@ -72,6 +76,8 @@ public class TransactionsController : ControllerBase
 
 
     [HttpGet("id/{id}")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(type: typeof(TransactionResponseDto), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
@@ -102,6 +108,8 @@ public class TransactionsController : ControllerBase
     }
 
     [HttpGet(template: "cpf/{cpf}")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(type: typeof(List<TransactionResponseDto>), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
@@ -156,6 +164,8 @@ public class TransactionsController : ControllerBase
     }
 
     [HttpPost(template: "deposity/{cpf}")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(type: typeof(TransactionResponseDto), statusCode: StatusCodes.Status201Created)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
@@ -198,6 +208,8 @@ public class TransactionsController : ControllerBase
     }
 
     [HttpPost(template: "withdraw/{cpf}")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(type: typeof(TransactionResponseDto), statusCode: StatusCodes.Status201Created)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
@@ -240,6 +252,8 @@ public class TransactionsController : ControllerBase
     }
 
     [HttpPost(template: "transfer/{cpf}/{cpftarget}")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(type: typeof(TransactionResponseDto), statusCode: StatusCodes.Status201Created)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]

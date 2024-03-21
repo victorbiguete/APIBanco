@@ -29,7 +29,9 @@ public class JwtService
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             }),
 
+            // Expires = DateTime.UtcNow.AddMinutes(1),
             Expires = DateTime.UtcNow.AddHours(1),
+            // Expires = DateTime.UtcNow.AddDays(1),
 
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
         };

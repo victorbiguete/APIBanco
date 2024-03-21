@@ -4,6 +4,8 @@ using AutoMapper;
 using APIBanco.Domain.Models;
 using APIBanco.Domain.Dtos;
 using APIBanco.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace APIBanco.Controllers;
 
@@ -21,6 +23,8 @@ public class AdressController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(type: typeof(AdressResponseDto), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<IEnumerable<AdressResponseDto>>> Get()
@@ -43,6 +47,8 @@ public class AdressController : ControllerBase
         }
     }
     [HttpGet(template: "id/{id}")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(type: typeof(AdressResponseDto), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
@@ -73,6 +79,8 @@ public class AdressController : ControllerBase
         }
     }
     [HttpGet(template: "cpf/{cpf}")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(type: typeof(AdressResponseDto), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
@@ -104,6 +112,8 @@ public class AdressController : ControllerBase
     }
 
     [HttpPost(template: "{cpf}")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<AdressResponseDto>> Post(ulong cpf, [FromBody] AdressRequestDto adress)
@@ -138,6 +148,8 @@ public class AdressController : ControllerBase
     }
 
     [HttpPut(template: "{id}")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(type: typeof(AdressResponseDto), statusCode: StatusCodes.Status202Accepted)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
@@ -180,6 +192,8 @@ public class AdressController : ControllerBase
     }
 
     [HttpDelete(template: "{id}")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(statusCode: StatusCodes.Status202Accepted)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     public async Task<ActionResult> Delete(int id)

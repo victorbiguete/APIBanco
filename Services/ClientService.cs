@@ -34,7 +34,6 @@ public class ClientService
             throw new KeyNotFoundException("Cpf or Password incorrect.");
         }
 
-        // JwtService _jwtService = new();
         string token = _jwtService.GenerateToken(client: clientLogin);
 
         return token;

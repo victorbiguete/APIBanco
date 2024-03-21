@@ -27,6 +27,7 @@ public class ClientsController : ControllerBase
 
     [HttpGet]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(type: typeof(IEnumerable<ClientResponseDto>), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<IEnumerable<ClientResponseDto>>> Get()
@@ -36,15 +37,23 @@ public class ClientsController : ControllerBase
             List<Client>? client = await _clientService.GetAsync();
             IEnumerable<ClientResponseDto>? clientResponse = _mapper.Map<IEnumerable<ClientResponseDto>>(source: client);
 
-            return Ok(value: clientResponse);
+            return Ok(new ApiTaskSuccess
+            {
+                Content = clientResponse
+            });
         }
         catch (Exception e)
         {
-            return BadRequest(error: e);
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
     }
 
     [HttpGet(template: "id/{id}")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(type: typeof(ClientResponseDto), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
@@ -55,19 +64,30 @@ public class ClientsController : ControllerBase
             Client? client = await _clientService.GetByIdAsync(Id: id);
             ClientResponseDto? response = _mapper.Map<ClientResponseDto>(source: client);
 
-            return Ok(value: response);
+            return Ok(new ApiTaskSuccess
+            {
+                Content = response
+            });
         }
         catch (KeyNotFoundException e)
         {
-            return NotFound(e.Message);
+            return NotFound(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
         catch (Exception e)
         {
-            return BadRequest(error: e.Message);
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
     }
 
     [HttpGet(template: "cpf/{cpf}")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(type: typeof(ClientResponseDto), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
@@ -78,15 +98,61 @@ public class ClientsController : ControllerBase
             Client? client = await _clientService.GetByCpfAsync(Cpf: cpf);
             ClientResponseDto? clientResponse = _mapper.Map<ClientResponseDto>(source: client);
 
-            return Ok(value: clientResponse);
+            return Ok(new ApiTaskSuccess
+            {
+                Content = clientResponse
+            });
         }
         catch (KeyNotFoundException e)
         {
-            return NotFound(e.Message);
+            return NotFound(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
         catch (Exception e)
         {
-            return BadRequest(error: e.Message);
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
+        }
+    }
+
+    [HttpPut(template: "id/{id}")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(type: typeof(ClientResponseDto), statusCode: StatusCodes.Status202Accepted)]
+    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ClientResponseDto>> Put(int id, [FromBody] ClientRequestNoCpfDto client)
+    {
+        try
+        {
+            Client? newClient = _mapper.Map<Client>(source: client);
+
+            newClient = await _clientService.UpdateAsync(Client: newClient, Id: id);
+
+            ClientResponseDto? response = _mapper.Map<ClientResponseDto>(source: newClient);
+
+            return Accepted(new ApiTaskSuccess
+            {
+                Content = response
+            });
+        }
+        catch (KeyNotFoundException e)
+        {
+            return NotFound(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
+        }
+        catch (Exception e)
+        {
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
     }
 
@@ -103,7 +169,17 @@ public class ClientsController : ControllerBase
             await _clientService.CreateAsync(Client: newClient);
 
             ClientResponseDto? response = _mapper.Map<ClientResponseDto>(source: newClient);
-            return CreatedAtAction(actionName: nameof(Get), routeValues: new { id = response.Id }, value: response);
+
+            string? token = await _clientService.LoginAsync(client: new ClientLoginRequestDto
+            {
+                Cpf = newClient.Cpf,
+                Password = newClient.Password
+            });
+
+            return CreatedAtAction(actionName: nameof(Get), routeValues: new { id = response.Id }, value: new ApiTaskLoginTokenResponse
+            {
+                Token = token
+            });
         }
         catch (DbUpdateException e)
         {
@@ -114,19 +190,25 @@ public class ClientsController : ControllerBase
         }
         catch (Exception e)
         {
-            return BadRequest(e.Message);
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
     }
 
     [HttpPost("login")]
+    [ProducesResponseType(type: typeof(ClientResponseDto), statusCode: StatusCodes.Status200OK)]
+    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login([FromBody] ClientLoginRequestDto login)
     {
         try
         {
             var response = await _clientService.LoginAsync(client: login);
-            return Ok(new ApiTaskSuccess
+            return Ok(new ApiTaskLoginTokenResponse
             {
-                Content = response
+                Token = response
             });
         }
         catch (KeyNotFoundException e)
@@ -136,38 +218,12 @@ public class ClientsController : ControllerBase
                 Erros = new List<string> { e.Message }
             });
         }
-        // catch (Exception e)
-        // {
-        //     return BadRequest(new ApiTaskErrors
-        //     {
-        //         Erros = new List<string> { e.Message }
-        //     });
-        // }
-    }
-
-    [HttpPut(template: "id/{id}")]
-    [ProducesResponseType(type: typeof(ClientResponseDto), statusCode: StatusCodes.Status202Accepted)]
-    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ClientResponseDto>> Put(int id, [FromBody] ClientRequestNoCpfDto client)
-    {
-        try
-        {
-            Client? newClient = _mapper.Map<Client>(source: client);
-
-            newClient = await _clientService.UpdateAsync(Client: newClient, Id: id);
-
-            ClientResponseDto? response = _mapper.Map<ClientResponseDto>(source: newClient);
-
-            return Accepted(response);
-        }
-        catch (KeyNotFoundException e)
-        {
-            return NotFound(e.Message);
-        }
         catch (Exception e)
         {
-            return BadRequest(error: e.Message);
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
         }
     }
 }

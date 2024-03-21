@@ -9,6 +9,7 @@ using System.Text;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
+
 // Jwt
 builder.Services.Configure<JwtConfig>(builder.Configuration.GetSection("JwtConfig"));
 builder.Services.AddAuthentication(options =>
@@ -32,11 +33,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// builder.Services.AddDefaultIdentity<IdentityUser>(Options => Options.SignIn.RequireConfirmedAccount = true)
-//     .AddEntityFrameworkStores<IdentityDbContext>();
-
-////
-
+// Services
 builder.Services.AddSingleton<JwtService>();
 builder.Services.AddScoped<IdentityDbContext>();
 builder.Services.AddScoped<ClientService>();
@@ -51,11 +48,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseLazyLoadingProxies().UseSqlite(defaultConnectionString);
 });
 
-
-
 // autoMapper
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-
 
 // Add services to the container.
 builder.Services.AddControllers();
