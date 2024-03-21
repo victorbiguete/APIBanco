@@ -109,7 +109,7 @@ public class TransactionsService
 
         Transactions transactionTarget = new Transactions(
             cpf: Target,
-            description: Transaction.Description,
+            description: Transaction.Description ?? " ",
             value: Transaction.Value,
             type: TransactionType.TransferIncome
         );

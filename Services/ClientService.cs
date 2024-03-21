@@ -1,36 +1,41 @@
 using APIBanco.Domain.Models;
 using APIBanco.Domain.Contexts;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Castle.Components.DictionaryAdapter.Xml;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using APIBanco.Domain.Dtos;
-using Microsoft.AspNetCore.Mvc;
 
 namespace APIBanco.Services;
 
 public class ClientService
 {
     private readonly AppDbContext _dbContext;
+    private readonly JwtService _jwtService;
 
-    public ClientService(AppDbContext dbContext)
+    public ClientService(AppDbContext dbContext, JwtService jwtService)
     {
         _dbContext = dbContext;
+        _jwtService = jwtService;
     }
 
     public async Task<string> LoginAsync(ClientLoginRequestDto client)
     {
-        JwtService _jwtService = new JwtService();
+        Client? clientLogin = await _dbContext.Clients.AsQueryable().Where(predicate: x => x.Cpf == client.Cpf).FirstOrDefaultAsync();
 
-        Client? user = await _dbContext.Clients.AsQueryable().Where(predicate: x => x.Cpf == client.Cpf && x.Password == client.Password).FirstOrDefaultAsync();
-
-        if (user == null)
+        if (clientLogin == null)
         {
-            throw new KeyNotFoundException("Cpf or Password not correct.");
+            throw new KeyNotFoundException("Cpf or Password incorrect.");
         }
 
-        string? token = _jwtService.GenerateToken(user);
+        string? passwordHash = BCrypt.Net.BCrypt.HashPassword(client.Password);
+        bool isPasswordCorrect = BCrypt.Net.BCrypt.Verify(client.Password, passwordHash);
+
+        if (!isPasswordCorrect)
+        {
+            throw new KeyNotFoundException("Cpf or Password incorrect.");
+        }
+
+        // JwtService _jwtService = new();
+        string token = _jwtService.GenerateToken(client: clientLogin);
 
         return token;
     }
@@ -64,6 +69,10 @@ public class ClientService
     {
         Client.BankAccount = new BankAccount();
         Client.BankAccount.Cpf = Client.Cpf;
+
+        var hashPassword = BCrypt.Net.BCrypt.HashPassword(Client.Password);
+        Client.Password = hashPassword;
+
         EntityEntry<Client>? res = await _dbContext.Clients.AddAsync(Client);
         await _dbContext.SaveChangesAsync();
 
@@ -77,10 +86,13 @@ public class ClientService
         if (oldClient == null)
             throw new KeyNotFoundException("Client not found: " + Id);
 
-        oldClient.UpdatedAt = DateTime.Now;
+        oldClient.UpdatedAt = DateTime.UtcNow;
         oldClient.Name = Client.Name;
         oldClient.Email = Client.Email;
-        oldClient.Password = Client.Password;
+
+        var hashPassword = BCrypt.Net.BCrypt.HashPassword(Client.Password);
+        oldClient.Password = hashPassword;
+
         oldClient.PhoneNumber = Client.PhoneNumber;
         oldClient.BornDate = Client.BornDate;
         // oldClient.Adress = client.Adress;

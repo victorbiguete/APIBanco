@@ -8,18 +8,17 @@ namespace APIBanco.Services;
 
 public class JwtService
 {
-    private JwtConfig _jwtConfig;
+    private IConfiguration _configuration;
+    // public JwtService() { }
 
-    public JwtService() { }
-
-    public JwtService(JwtConfig jwtConfig)
+    public JwtService(IConfiguration configuration)
     {
-        _jwtConfig = jwtConfig;
+        _configuration = configuration;
     }
     public string GenerateToken(Client client)
     {
         JwtSecurityTokenHandler? jwtTokenHandler = new JwtSecurityTokenHandler();
-        byte[]? key = Encoding.ASCII.GetBytes(_jwtConfig.Secret);
+        var key = Encoding.ASCII.GetBytes(_configuration["JwtConfig:Secret"]!);
 
         SecurityTokenDescriptor? tokenDescriptor = new SecurityTokenDescriptor
         {

@@ -60,7 +60,7 @@ public class AdressService
 
         adress.Id = oldAdress.Id;
         adress.Cpf = oldAdress.Cpf;
-        adress.UpdatedAt = DateTime.Now;
+        adress.UpdatedAt = DateTime.UtcNow;
 
         _dbContext.Adresses.Update(adress);
         await _dbContext.SaveChangesAsync();

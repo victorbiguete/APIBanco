@@ -5,7 +5,6 @@ namespace APIBanco.Domain.Dtos;
 public class TransactionResponseDto
 {
     public int Id { get; set; }
-    // public ulong Cpf { get; set; }
     public string? Description { get; set; }
     public decimal Value { get; set; }
     public DateTime Date { get; set; }

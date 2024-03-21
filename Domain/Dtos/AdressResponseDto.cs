@@ -3,7 +3,6 @@ namespace APIBanco.Domain.Dtos;
 public class AdressResponseDto
 {
     public int Id { get; set; }
-    // public ulong Cpf { get; set; }
     public int ZipCode { get; set; }
     public string Street { get; set; } = null!;
     public int HouseNumber { get; set; }

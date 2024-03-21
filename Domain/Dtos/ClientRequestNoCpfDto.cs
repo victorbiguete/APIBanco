@@ -5,6 +5,7 @@ namespace APIBanco.Domain.Dtos;
 public class ClientRequestNoCpfDto
 {
     [Required]
+    [RegularExpression(@"^[a-zA-Z]+$")]
     public string Name { get; set; } = null!;
 
     [Required]
@@ -18,7 +19,7 @@ public class ClientRequestNoCpfDto
     [Required]
     public string PhoneNumber { get; set; } = null!;
 
-    [DataType(dataType: DataType.Date)]
     [Required]
+    [DataType(dataType: DataType.Date)]
     public DateTime BornDate { get; set; }
 }

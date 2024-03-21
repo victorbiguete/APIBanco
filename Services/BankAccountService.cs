@@ -53,7 +53,7 @@ public class BankAccountService
             throw new KeyNotFoundException("BankAccount not found: " + bankAccount.Id);
 
         bankAccount.Id = oldBankAccount.Id;
-        bankAccount.UpdatedAt = DateTime.Now;
+        bankAccount.UpdatedAt = DateTime.UtcNow;
 
         _dbContext.BankAccounts.Update(bankAccount);
         await _dbContext.SaveChangesAsync();
@@ -69,7 +69,7 @@ public class BankAccountService
             throw new KeyNotFoundException("BankAccount not found: " + id);
 
         oldBankAccount.Status = status;
-        oldBankAccount.UpdatedAt = DateTime.Now;
+        oldBankAccount.UpdatedAt = DateTime.UtcNow;
 
         _dbContext.Update(oldBankAccount);
         await _dbContext.SaveChangesAsync();

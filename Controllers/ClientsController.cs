@@ -8,6 +8,7 @@ using APIBanco.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Data.Entity.Infrastructure;
+using Microsoft.AspNetCore.Authentication;
 
 namespace APIBanco.Controller;
 
@@ -25,7 +26,7 @@ public class ClientsController : ControllerBase
     }
 
     [HttpGet]
-    // [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(type: typeof(IEnumerable<ClientResponseDto>), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<IEnumerable<ClientResponseDto>>> Get()
@@ -130,18 +131,18 @@ public class ClientsController : ControllerBase
         }
         catch (KeyNotFoundException e)
         {
-            return BadRequest(new ApiTaskErrors
+            return Unauthorized(new ApiTaskErrors
             {
                 Erros = new List<string> { e.Message }
             });
         }
-        catch (Exception e)
-        {
-            return BadRequest(new ApiTaskErrors
-            {
-                Erros = new List<string> { e.Message }
-            });
-        }
+        // catch (Exception e)
+        // {
+        //     return BadRequest(new ApiTaskErrors
+        //     {
+        //         Erros = new List<string> { e.Message }
+        //     });
+        // }
     }
 
     [HttpPut(template: "id/{id}")]

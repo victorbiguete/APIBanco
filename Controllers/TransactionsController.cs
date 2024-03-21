@@ -173,7 +173,7 @@ public class TransactionsController : ControllerBase
             Transactions? newTransaction = _mapper.Map<Transactions>(source: transaction);
             newTransaction.Cpf = cpf;
             newTransaction.Type = TransactionType.Deposit;
-            newTransaction.Date = DateTime.Now;
+            newTransaction.Date = DateTime.UtcNow;
             await _transactionsService.CreateAsync(Transaction: newTransaction, Source: cpf);
             TransactionResponseDto? response = _mapper.Map<TransactionResponseDto>(source: newTransaction);
             return CreatedAtAction(actionName: nameof(Get), routeValues: new { id = response.Id }, value: new ApiTaskSuccess
@@ -215,7 +215,7 @@ public class TransactionsController : ControllerBase
             Transactions? newTransaction = _mapper.Map<Transactions>(source: transaction);
             newTransaction.Cpf = cpf;
             newTransaction.Type = TransactionType.Withdraw;
-            newTransaction.Date = DateTime.Now;
+            newTransaction.Date = DateTime.UtcNow;
             await _transactionsService.CreateAsync(Transaction: newTransaction, Source: cpf);
             TransactionResponseDto? response = _mapper.Map<TransactionResponseDto>(source: newTransaction);
             return CreatedAtAction(actionName: nameof(Get), routeValues: new { id = response.Id }, value: new ApiTaskSuccess
@@ -257,7 +257,7 @@ public class TransactionsController : ControllerBase
             Transactions? newTransaction = _mapper.Map<Transactions>(source: transaction);
             newTransaction.Cpf = cpf;
             newTransaction.Type = TransactionType.TransferOutcome;
-            newTransaction.Date = DateTime.Now;
+            newTransaction.Date = DateTime.UtcNow;
             await _transactionsService.CreateAsync(Transaction: newTransaction, Source: cpf, Target: cpftarget);
             TransactionResponseDto? response = _mapper.Map<TransactionResponseDto>(source: newTransaction);
             return CreatedAtAction(actionName: nameof(Get), routeValues: new { id = response.Id }, value: new ApiTaskSuccess
