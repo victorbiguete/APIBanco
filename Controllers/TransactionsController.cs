@@ -13,15 +13,17 @@ namespace APIBanco.Controllers;
 
 [ApiController]
 [Route(template: "api/[controller]")]
+[Produces("application/json")]
 public class TransactionsController : ControllerBase
 {
     private readonly TransactionsService _transactionsService;
-
+    private readonly JwtService _jwtService;
     private readonly IMapper _mapper;
 
-    public TransactionsController(TransactionsService transactionsService, IMapper mapper)
+    public TransactionsController(TransactionsService transactionsService, JwtService jwtService, IMapper mapper)
     {
         _transactionsService = transactionsService;
+        _jwtService = jwtService;
         _mapper = mapper;
     }
 
@@ -236,12 +238,14 @@ public class TransactionsController : ControllerBase
     /// <param name="cpf">The customer's CPF.</param>
     /// <returns>A created transaction.</returns>
     /// <response code="401">Unauthorized.</response>
+    /// <response code="403">Forbidden</response>
     /// <response code="201">The transaction was created successfully.</response>
     /// <response code="400">Invalid request.</response>
     /// <response code="404">Resource not found.</response>
     [HttpPost(template: "withdraw/{cpf}")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(statusCode: StatusCodes.Status403Forbidden)]
     [ProducesResponseType(type: typeof(TransactionResponseDto), statusCode: StatusCodes.Status201Created)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
@@ -256,6 +260,23 @@ public class TransactionsController : ControllerBase
                 Erros = ModelState.Values.SelectMany(x => x.Errors.Select(y => y.ErrorMessage))
             });
         }
+
+        try
+        {
+            string TokenCpf = _jwtService.GetCpfClaimToken(User: User);
+            if (TokenCpf != cpf)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden);
+            }
+        }
+        catch (TokenIdNotEqualsClientIdException e)
+        {
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
+        }
+
         try
         {
             Transactions? newTransaction = _mapper.Map<Transactions>(source: transaction);
@@ -294,6 +315,7 @@ public class TransactionsController : ControllerBase
     /// <param name="cpftarget">The target customer's CPF.</param>
     /// <returns>A created transaction.</returns>
     /// <response code="401">Unauthorized.</response>
+    /// <response code="403">Forbidden</response>
     /// <response code="201">The transaction was created successfully.</response>
     /// <response code="400">Invalid request.</response>
     /// <response code="404">Resource not found.</response>
@@ -314,6 +336,23 @@ public class TransactionsController : ControllerBase
                 Erros = ModelState.Values.SelectMany(x => x.Errors.Select(y => y.ErrorMessage))
             });
         }
+
+        try
+        {
+            string TokenCpf = _jwtService.GetCpfClaimToken(User: User);
+            if (TokenCpf != cpf)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden);
+            }
+        }
+        catch (TokenIdNotEqualsClientIdException e)
+        {
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
+        }
+
         try
         {
             Transactions? newTransaction = _mapper.Map<Transactions>(source: transaction);

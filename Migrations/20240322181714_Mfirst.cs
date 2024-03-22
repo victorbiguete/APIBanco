@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace APIBanco.Migrations
 {
     /// <inheritdoc />
-    public partial class PrimeiroTest : Migration
+    public partial class Mfirst : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -17,7 +17,7 @@ namespace APIBanco.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Cpf = table.Column<ulong>(type: "INTEGER", nullable: false),
+                    Cpf = table.Column<string>(type: "TEXT", maxLength: 11, nullable: false),
                     Email = table.Column<string>(type: "TEXT", nullable: false),
                     Password = table.Column<string>(type: "TEXT", nullable: false),
                     Name = table.Column<string>(type: "TEXT", nullable: false),
@@ -29,6 +29,7 @@ namespace APIBanco.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Clients", x => x.Id);
+                    table.UniqueConstraint("AK_Clients_Cpf", x => x.Cpf);
                 });
 
             migrationBuilder.CreateTable(
@@ -37,7 +38,7 @@ namespace APIBanco.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Cpf = table.Column<ulong>(type: "INTEGER", nullable: false),
+                    Cpf = table.Column<string>(type: "TEXT", nullable: false),
                     ZipCode = table.Column<int>(type: "INTEGER", nullable: false),
                     Street = table.Column<string>(type: "TEXT", nullable: false),
                     HouseNumber = table.Column<int>(type: "INTEGER", nullable: false),
@@ -64,7 +65,7 @@ namespace APIBanco.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Cpf = table.Column<ulong>(type: "INTEGER", nullable: false),
+                    Cpf = table.Column<string>(type: "TEXT", nullable: false),
                     Balance = table.Column<decimal>(type: "TEXT", nullable: false),
                     Status = table.Column<int>(type: "INTEGER", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
@@ -87,11 +88,11 @@ namespace APIBanco.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Cpf = table.Column<ulong>(type: "INTEGER", nullable: false),
-                    Description = table.Column<string>(type: "TEXT", nullable: true),
+                    Cpf = table.Column<string>(type: "TEXT", nullable: false),
                     Value = table.Column<decimal>(type: "TEXT", nullable: false),
-                    Date = table.Column<DateTime>(type: "TEXT", nullable: false),
                     Type = table.Column<int>(type: "INTEGER", nullable: false),
+                    Date = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    Description = table.Column<string>(type: "TEXT", nullable: true),
                     BankAccountId = table.Column<int>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>

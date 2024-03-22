@@ -8,19 +8,23 @@ using APIBanco.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Data.Entity.Infrastructure;
+using System.Security.Claims;
 
 namespace APIBanco.Controller;
 
 [ApiController]
 [Route(template: "api/[controller]")]
+[Produces("application/json")]
 public class ClientsController : ControllerBase
 {
     private readonly ClientService _clientService;
+    public readonly JwtService _jwtService;
     private readonly IMapper _mapper;
 
-    public ClientsController(ClientService clientService, IMapper mapper)
+    public ClientsController(ClientService clientService, JwtService jwtService, IMapper mapper)
     {
         _clientService = clientService;
+        _jwtService = jwtService;
         _mapper = mapper;
     }
 
@@ -96,12 +100,14 @@ public class ClientsController : ControllerBase
     /// <param name="client">Client data to update.</param>
     /// <returns>Updated client data.</returns>
     /// <response code="401">Unauthorized</response>
+    /// <response code="403">Forbidden</response>
     /// <response code="202">Accepted</response>
     /// <response code="400">Bad Request</response>
     /// <response code="404">Not Found</response>
-    [HttpPut(template: "id/{id}")]
+    [HttpPut(template: "{id}")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(statusCode: StatusCodes.Status403Forbidden)]
     [ProducesResponseType(type: typeof(ClientResponseDto), statusCode: StatusCodes.Status202Accepted)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
@@ -116,6 +122,23 @@ public class ClientsController : ControllerBase
                 Erros = ModelState.Values.SelectMany(x => x.Errors.Select(y => y.ErrorMessage))
             });
         }
+
+        try
+        {
+            int TokenId = _jwtService.GetIdClaimToken(User: User);
+            if (TokenId != id)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden);
+            }
+        }
+        catch (TokenIdNotEqualsClientIdException e)
+        {
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
+        }
+
         try
         {
             Client? newClient = _mapper.Map<Client>(source: client);
@@ -177,8 +200,8 @@ public class ClientsController : ControllerBase
 
             string? token = await _clientService.LoginAsync(client: new ClientLoginRequestDto
             {
-                Cpf = newClient.Cpf,
-                Password = newClient.Password
+                Cpf = client.Cpf,
+                Password = client.Password
             });
 
             return CreatedAtAction(actionName: nameof(Get), routeValues: new { id = response.Id }, value: new ApiTaskRegisterResponse

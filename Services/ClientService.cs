@@ -29,15 +29,14 @@ public class ClientService
 
         if (clientLogin == null)
         {
-            throw new KeyNotFoundException("Cpf or Password incorrect.");
+            throw new KeyNotFoundException("Cpf  incorrect.");
         }
 
-        string? passwordHash = BCrypt.Net.BCrypt.HashPassword(client.Password);
-        bool isPasswordCorrect = BCrypt.Net.BCrypt.Verify(client.Password, passwordHash);
+        bool isPasswordCorrect = BCrypt.Net.BCrypt.Verify(client.Password, clientLogin.Password);
 
         if (!isPasswordCorrect)
         {
-            throw new KeyNotFoundException("Cpf or Password incorrect.");
+            throw new KeyNotFoundException("Password incorrect.");
         }
 
         string token = _jwtService.GenerateToken(client: clientLogin);

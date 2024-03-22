@@ -12,15 +12,17 @@ namespace APIBanco.Controllers;
 
 [ApiController]
 [Route(template: "api/[controller]")]
+[Produces("application/json")]
 public class BankAccountController : ControllerBase
 {
     private readonly BankAccountService _bankAccountService;
-
+    private readonly JwtService _jwtService;
     private readonly IMapper _mapper;
 
-    public BankAccountController(BankAccountService bankAccountService, IMapper mapper)
+    public BankAccountController(BankAccountService bankAccountService, JwtService jwtService, IMapper mapper)
     {
         _bankAccountService = bankAccountService;
+        _jwtService = jwtService;
         _mapper = mapper;
     }
 
@@ -97,12 +99,14 @@ public class BankAccountController : ControllerBase
     /// <param name="id">The id of the bank account.</param>
     /// <returns>An Accepted result with the updated bank account in the response body, or a NotFound or BadRequest result.</returns>
     /// <response code="401">Unauthorized. The user is not authenticated.</response>
+    /// <response code="403">Forbidden</response>
     /// <response code="202">Accepted. The bank account status was updated.</response>
     /// <response code="404">Not found. The bank account was not found.</response>
     /// <response code="400">Bad request. There was an error in the request.</response>
     [HttpPut(template: "{id}")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(statusCode: StatusCodes.Status403Forbidden)]
     [ProducesResponseType(statusCode: StatusCodes.Status202Accepted)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
@@ -117,6 +121,23 @@ public class BankAccountController : ControllerBase
                 Erros = ModelState.Values.SelectMany(x => x.Errors.Select(y => y.ErrorMessage))
             });
         }
+
+        try
+        {
+            int TokenId = _jwtService.GetIdClaimToken(User: User);
+            if (TokenId != id)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden);
+            }
+        }
+        catch (TokenIdNotEqualsClientIdException e)
+        {
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
+        }
+
         try
         {
             BankAccount? response = await _bankAccountService.UpdateStatusAsync(id: id, status: AcountStatus);

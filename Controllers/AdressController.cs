@@ -11,14 +11,17 @@ namespace APIBanco.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Produces("application/json")]
 public class AdressController : ControllerBase
 {
     private readonly AdressService _adressService;
+    private readonly JwtService _jwtService;
     private readonly IMapper _mapper;
 
-    public AdressController(AdressService adressService, IMapper mapper)
+    public AdressController(AdressService adressService, JwtService jwtService, IMapper mapper)
     {
         _adressService = adressService;
+        _jwtService = jwtService;
         _mapper = mapper;
     }
 
@@ -93,12 +96,14 @@ public class AdressController : ControllerBase
     /// <param name="adress">AdressRequestDto object with the new adress data.</param>
     /// <returns>AdressResponseDto object with the updated adress data.</returns>
     /// <response code="401">Unauthorized</response>
+    /// <response code="403">Forbidden</response>
     /// <response code="202">Accepted</response>
     /// <response code="400">Bad Request</response>
     /// <response code="404">Not Found</response>
     [HttpPut(template: "{id}")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(statusCode: StatusCodes.Status403Forbidden)]
     [ProducesResponseType(type: typeof(AdressResponseDto), statusCode: StatusCodes.Status202Accepted)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
@@ -113,6 +118,23 @@ public class AdressController : ControllerBase
                 Erros = ModelState.Values.SelectMany(x => x.Errors.Select(y => y.ErrorMessage))
             });
         }
+
+        try
+        {
+            int TokenId = _jwtService.GetIdClaimToken(User: User);
+            if (TokenId != id)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden);
+            }
+        }
+        catch (TokenIdNotEqualsClientIdException e)
+        {
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = new List<string> { e.Message }
+            });
+        }
+
         try
         {
             Adress? newAdress = _mapper.Map<Adress>(source: adress);
