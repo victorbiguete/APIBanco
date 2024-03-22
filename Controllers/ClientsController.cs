@@ -109,6 +109,13 @@ public class ClientsController : ControllerBase
         int id,
         [FromBody] ClientRequestUpdateDto client)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = ModelState.Values.SelectMany(x => x.Errors.Select(y => y.ErrorMessage))
+            });
+        }
         try
         {
             Client? newClient = _mapper.Map<Client>(source: client);
@@ -153,6 +160,13 @@ public class ClientsController : ControllerBase
     public async Task<ActionResult<ClientResponseDto>> Register(
         [FromBody] ClientRequestDto client)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = ModelState.Values.SelectMany(x => x.Errors.Select(y => y.ErrorMessage))
+            });
+        }
         try
         {
             Client? newClient = _mapper.Map<Client>(source: client);
@@ -167,9 +181,10 @@ public class ClientsController : ControllerBase
                 Password = newClient.Password
             });
 
-            return CreatedAtAction(actionName: nameof(Get), routeValues: new { id = response.Id }, value: new ApiTaskLoginTokenResponse
+            return CreatedAtAction(actionName: nameof(Get), routeValues: new { id = response.Id }, value: new ApiTaskRegisterResponse
             {
-                Token = token
+                Token = token,
+                Content = response
             });
         }
         catch (DbUpdateException e)
@@ -197,16 +212,23 @@ public class ClientsController : ControllerBase
     /// <response code="400">Bad Request</response>
     /// <response code="401">Unauthorized</response>
     [HttpPost(template: "login")]
-    [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+    [ProducesResponseType(statusCode: StatusCodes.Status202Accepted)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login(
         [FromBody] ClientLoginRequestDto login)
     {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(new ApiTaskErrors
+            {
+                Erros = ModelState.Values.SelectMany(x => x.Errors.Select(y => y.ErrorMessage))
+            });
+        }
         try
         {
             var response = await _clientService.LoginAsync(client: login);
-            return Ok(new ApiTaskLoginTokenResponse
+            return Accepted(new ApiTaskLoginTokenResponse
             {
                 Token = response
             });
