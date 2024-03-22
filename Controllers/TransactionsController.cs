@@ -180,7 +180,7 @@ public class TransactionsController : ControllerBase
     /// <response code="201">The transaction was created successfully.</response>
     /// <response code="400">The transaction was not valid.</response>
     /// <response code="404">The customer's account was not found.</response>
-    [HttpPost(template: "deposity/{cpf}")]
+    [HttpPost(template: "deposit/{cpf}")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(type: typeof(TransactionResponseDto), statusCode: StatusCodes.Status201Created)]
