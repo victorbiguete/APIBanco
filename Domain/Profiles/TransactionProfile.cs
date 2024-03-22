@@ -10,7 +10,6 @@ public class TransactionProfile : Profile
     public TransactionProfile()
     {
         CreateMap<Transactions, TransactionResponseDto>();
-        // CreateMap<List<Transactions>, List<TransactionResponseDto>>();
         CreateMap<TransactionRequestDto, Transactions>();
     }
 }

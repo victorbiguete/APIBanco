@@ -8,7 +8,6 @@ using APIBanco.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Data.Entity.Infrastructure;
-using Microsoft.AspNetCore.Authentication;
 
 namespace APIBanco.Controller;
 
@@ -25,43 +24,48 @@ public class ClientsController : ControllerBase
         _mapper = mapper;
     }
 
+    /// <summary>
+    /// HTTP GET endpoint to retrieve clients.
+    /// </summary>
+    /// <param name="id">ID of the client.</param>
+    /// <param name="cpf">CPF of the client.</param>
+    /// <returns>List of ClientResponseDto objects.</returns>
+    /// <response code="401">Unauthorized</response>
+    /// <response code="200">OK</response>
+    /// <response code="400">Bad Request</response>
+    /// <response code="404">Not Found</response>
     [HttpGet]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-    [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(type: typeof(IEnumerable<ClientResponseDto>), statusCode: StatusCodes.Status200OK)]
-    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<IEnumerable<ClientResponseDto>>> Get()
-    {
-        try
-        {
-            List<Client>? client = await _clientService.GetAsync();
-            IEnumerable<ClientResponseDto>? clientResponse = _mapper.Map<IEnumerable<ClientResponseDto>>(source: client);
-
-            return Ok(new ApiTaskSuccess
-            {
-                Content = clientResponse
-            });
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new ApiTaskErrors
-            {
-                Erros = new List<string> { e.Message }
-            });
-        }
-    }
-
-    [HttpGet(template: "id/{id}")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(type: typeof(ClientResponseDto), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ClientResponseDto>> GetById(int id)
+    public async Task<ActionResult<IEnumerable<ClientResponseDto>>> Get(
+        [FromQuery(Name = "id")] int? id = null,
+        [FromQuery(Name = "cpf")] string? cpf = null)
     {
         try
         {
-            Client? client = await _clientService.GetByIdAsync(Id: id);
+            if (id == null && cpf == null)
+            {
+                IEnumerable<Client>? clients = await _clientService.GetAsync();
+                IEnumerable<ClientResponseDto>? responses = _mapper.Map<IEnumerable<ClientResponseDto>>(source: clients);
+                return Ok(new ApiTaskSuccess
+                {
+                    Content = responses
+                });
+            }
+
+            Client? client = null;
+            if (id != null)
+            {
+                client = await _clientService.GetByIdAsync(Id: (int)id);
+            }
+            else if (cpf != null)
+            {
+                client = await _clientService.GetByCpfAsync(Cpf: cpf);
+            }
+
             ClientResponseDto? response = _mapper.Map<ClientResponseDto>(source: client);
 
             return Ok(new ApiTaskSuccess
@@ -85,47 +89,25 @@ public class ClientsController : ControllerBase
         }
     }
 
-    [HttpGet(template: "cpf/{cpf}")]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-    [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(type: typeof(ClientResponseDto), statusCode: StatusCodes.Status200OK)]
-    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ClientResponseDto>> GetByCpf(ulong cpf)
-    {
-        try
-        {
-            Client? client = await _clientService.GetByCpfAsync(Cpf: cpf);
-            ClientResponseDto? clientResponse = _mapper.Map<ClientResponseDto>(source: client);
-
-            return Ok(new ApiTaskSuccess
-            {
-                Content = clientResponse
-            });
-        }
-        catch (KeyNotFoundException e)
-        {
-            return NotFound(new ApiTaskErrors
-            {
-                Erros = new List<string> { e.Message }
-            });
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new ApiTaskErrors
-            {
-                Erros = new List<string> { e.Message }
-            });
-        }
-    }
-
+    /// <summary>
+    /// HTTP PUT endpoint to update a client by its ID.
+    /// </summary>
+    /// <param name="id">ID of the client to update.</param>
+    /// <param name="client">Client data to update.</param>
+    /// <returns>Updated client data.</returns>
+    /// <response code="401">Unauthorized</response>
+    /// <response code="202">Accepted</response>
+    /// <response code="400">Bad Request</response>
+    /// <response code="404">Not Found</response>
     [HttpPut(template: "id/{id}")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(type: typeof(ClientResponseDto), statusCode: StatusCodes.Status202Accepted)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ClientResponseDto>> Put(int id, [FromBody] ClientRequestNoCpfDto client)
+    public async Task<ActionResult<ClientResponseDto>> Put(
+        int id,
+        [FromBody] ClientRequestUpdateDto client)
     {
         try
         {
@@ -156,11 +138,20 @@ public class ClientsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Registers a new client.
+    /// </summary>
+    /// <param name="client">The client request data.</param>
+    /// <returns>The created client response data and a token.</returns>
+    /// <response code="201">Created</response>
+    /// <response code="400">Bad Request</response>
+    /// <response code="409">Conflict</response>
     [HttpPost("register")]
-    [ProducesResponseType(type: typeof(ClientResponseDto), statusCode: StatusCodes.Status201Created)]
+    [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<ClientResponseDto>> Register([FromBody] ClientRequestDto client)
+    public async Task<ActionResult<ClientResponseDto>> Register(
+        [FromBody] ClientRequestDto client)
     {
         try
         {
@@ -197,11 +188,20 @@ public class ClientsController : ControllerBase
         }
     }
 
-    [HttpPost("login")]
-    [ProducesResponseType(type: typeof(ClientResponseDto), statusCode: StatusCodes.Status200OK)]
+    /// <summary>
+    /// HTTP POST endpoint to login a client.
+    /// </summary>
+    /// <param name="login">The client login data.</param>
+    /// <returns>A token to be used in subsequent requests.</returns>
+    /// <response code="200">OK</response>
+    /// <response code="400">Bad Request</response>
+    /// <response code="401">Unauthorized</response>
+    [HttpPost(template: "login")]
+    [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> Login([FromBody] ClientLoginRequestDto login)
+    public async Task<IActionResult> Login(
+        [FromBody] ClientLoginRequestDto login)
     {
         try
         {

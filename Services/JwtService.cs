@@ -9,12 +9,16 @@ namespace APIBanco.Services;
 public class JwtService
 {
     private IConfiguration _configuration;
-    // public JwtService() { }
 
     public JwtService(IConfiguration configuration)
     {
         _configuration = configuration;
     }
+    /// <summary>
+    /// Generates a JWT token for the provided client.
+    /// </summary>
+    /// <param name="client">The client for whom the token is being generated.</param>
+    /// <returns>The generated JWT token.</returns>
     public string GenerateToken(Client client)
     {
         JwtSecurityTokenHandler? jwtTokenHandler = new JwtSecurityTokenHandler();

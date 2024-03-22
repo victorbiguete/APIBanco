@@ -14,7 +14,7 @@ public class ClientProfile : Profile
         {
             dest.Adress.Cpf = src.Cpf;
         });
-        CreateMap<Client, ClientRequestNoCpfDto>();
+        CreateMap<Client, ClientRequestUpdateDto>();
     }
 
 }

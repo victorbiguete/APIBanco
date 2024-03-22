@@ -22,73 +22,48 @@ public class AdressController : ControllerBase
         _mapper = mapper;
     }
 
+    /// <summary>
+    /// HTTP GET endpoint to retrieve adresses.
+    /// </summary>
+    /// <param name="id">ID of the adress.</param>
+    /// <param name="cpf">CPF of the owner of the adress.</param>
+    /// <returns>List of AdressResponseDto objects or a single AdressResponseDto object.</returns>
+    /// <response code="401">Unauthorized</response>
+    /// <response code="200">OK</response>
+    /// <response code="400">Bad Request</response>
+    /// <response code="404">Not Found</response>
     [HttpGet]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(type: typeof(AdressResponseDto), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<IEnumerable<AdressResponseDto>>> Get()
-    {
-        try
-        {
-            IEnumerable<Adress>? adress = await _adressService.GetAsync();
-            IEnumerable<AdressResponseDto>? response = _mapper.Map<IEnumerable<AdressResponseDto>>(source: adress);
-            return Ok(new ApiTaskSuccess
-            {
-                Content = response
-            });
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new ApiTaskErrors
-            {
-                Erros = new List<string> { e.Message }
-            });
-        }
-    }
-    [HttpGet(template: "id/{id}")]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-    [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(type: typeof(AdressResponseDto), statusCode: StatusCodes.Status200OK)]
-    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IEnumerable<AdressResponseDto>>> GetById(int id)
+    public async Task<ActionResult<IEnumerable<AdressResponseDto>>> Get(
+        [FromQuery(Name = "id")] int? id = null,
+        [FromQuery(Name = "cpf")] string? cpf = null)
     {
         try
         {
-            Adress? adress = await _adressService.GetByIdAsync(id: id);
-            AdressResponseDto? response = _mapper.Map<AdressResponseDto>(source: adress);
-            return Ok(new ApiTaskSuccess
+            if (id == null && cpf == null)
             {
-                Content = response
-            });
-        }
-        catch (KeyNotFoundException e)
-        {
-            return NotFound(new ApiTaskErrors
+                IEnumerable<Adress>? adresses = await _adressService.GetAsync();
+                IEnumerable<AdressResponseDto>? responses = _mapper.Map<IEnumerable<AdressResponseDto>>(source: adresses);
+                return Ok(new ApiTaskSuccess
+                {
+                    Content = responses
+                });
+            }
+
+            Adress? adress = null;
+            if (id != null)
             {
-                Erros = new List<string> { e.Message }
-            });
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new ApiTaskErrors
+                adress = await _adressService.GetByIdAsync(id: (int)id);
+            }
+            else if (cpf != null)
             {
-                Erros = new List<string> { e.Message }
-            });
-        }
-    }
-    [HttpGet(template: "cpf/{cpf}")]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-    [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(type: typeof(AdressResponseDto), statusCode: StatusCodes.Status200OK)]
-    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<AdressResponseDto>> GetByCpf(ulong cpf)
-    {
-        try
-        {
-            Adress? adress = await _adressService.GetByCpfAsync(cpf: cpf);
+                adress = await _adressService.GetByCpfAsync(cpf: cpf);
+            }
+
             AdressResponseDto? response = _mapper.Map<AdressResponseDto>(source: adress);
             return Ok(new ApiTaskSuccess
             {
@@ -111,49 +86,25 @@ public class AdressController : ControllerBase
         }
     }
 
-    [HttpPost(template: "{cpf}")]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-    [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(statusCode: StatusCodes.Status201Created)]
-    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<AdressResponseDto>> Post(ulong cpf, [FromBody] AdressRequestDto adress)
-    {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(new ApiTaskErrors
-            {
-                Erros = ModelState.Values.SelectMany(x => x.Errors.Select(y => y.ErrorMessage))
-            });
-        }
-        try
-        {
-            Adress? newAdress = _mapper.Map<Adress>(source: adress);
-            newAdress.Cpf = cpf;
-
-            await _adressService.CreateAsync(adress: newAdress);
-            AdressResponseDto? response = _mapper.Map<AdressResponseDto>(source: newAdress);
-
-            return CreatedAtAction(actionName: nameof(Get), routeValues: new { id = response.Id }, value: new ApiTaskSuccess
-            {
-                Content = response
-            });
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new ApiTaskErrors
-            {
-                Erros = new List<string> { e.Message }
-            });
-        }
-    }
-
+    /// <summary>
+    /// HTTP PUT endpoint to update an adress.
+    /// </summary>
+    /// <param name="id">ID of the adress to update.</param>
+    /// <param name="adress">AdressRequestDto object with the new adress data.</param>
+    /// <returns>AdressResponseDto object with the updated adress data.</returns>
+    /// <response code="401">Unauthorized</response>
+    /// <response code="202">Accepted</response>
+    /// <response code="400">Bad Request</response>
+    /// <response code="404">Not Found</response>
     [HttpPut(template: "{id}")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(type: typeof(AdressResponseDto), statusCode: StatusCodes.Status202Accepted)]
     [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
     [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<AdressResponseDto>> Put(int id, [FromBody] AdressRequestDto adress)
+    public async Task<ActionResult<AdressResponseDto>> Put(
+        int id,
+        [FromBody] AdressRequestDto adress)
     {
         if (!ModelState.IsValid)
         {
@@ -180,30 +131,6 @@ public class AdressController : ControllerBase
             return NotFound(new ApiTaskErrors
             {
                 Erros = new List<string> { e.Message }
-            });
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new ApiTaskErrors
-            {
-                Erros = new List<string> { e.Message }
-            });
-        }
-    }
-
-    [HttpDelete(template: "{id}")]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-    [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(statusCode: StatusCodes.Status202Accepted)]
-    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult> Delete(int id)
-    {
-        try
-        {
-            await _adressService.DeleteAsync(id: id);
-            return Accepted(new ApiTaskSuccess
-            {
-                Content = id
             });
         }
         catch (Exception e)

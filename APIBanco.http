@@ -1,7 +1,18 @@
 @APIBanco_HostAddress = http://localhost:5260
 
 GET {{APIBanco_HostAddress}}/api/clients/
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjIiLCJzdWIiOiIyMS8wMy8yMDI0IDAwOjAwOjAwIiwiZW1haWwiOiJ1c2VyMTExQGV4YW1wbGUuY29tIiwianRpIjoiNWQyOWRiN2UtZWE0ZC00ODBiLTliNTgtZjZlZWY3YzYyMzFjIiwibmJmIjoxNzExMDU2MTIzLCJleHAiOjE3MTEwNTk3MjMsImlhdCI6MTcxMTA1NjEyM30.kn2mgByP6nP0JqB5Mwc26xJXvk5q57d1WEpixebO2rM
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjEiLCJzdWIiOiIyMS8wMy8yMDI0IDAwOjAwOjAwIiwiZW1haWwiOiJ1c2VyMTIzNEBleGFtcGxlLmNvbSIsImp0aSI6IjhhYzFjNjQyLWM4OTUtNDliMy1iNGNhLWY2MDVlYWNiZWQ1MSIsIm5iZiI6MTcxMTExNTU1NywiZXhwIjoxNzExMTE5MTU3LCJpYXQiOjE3MTExMTU1NTd9.QeHykSJ9mPZAGNcT8EJHvbqNJZE-WXcicceb2KGbkiI
 Accept: application/json
+
+###
+
+POST {{APIBanco_HostAddress}}/api/clients/login
+Accept: application/json
+content-type: application/json
+
+{
+  "cpf": "1234",
+  "password": "string1234"
+}
 
 ###

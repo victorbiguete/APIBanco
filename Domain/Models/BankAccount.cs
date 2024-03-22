@@ -9,10 +9,13 @@ public class BankAccount
     [Key]
     [Required]
     public int Id { get; set; }
-    public ulong Cpf { get; set; }
+    [Required]
+    public string Cpf { get; set; } = null!;
+    [Required]
     public decimal Balance { get; set; } = 0;
-    public virtual List<Transactions> Transactions { get; set; } = new List<Transactions>();
+    [Required]
     public AccountStatus Status { get; set; } = AccountStatus.Active;
+    public virtual List<Transactions> Transactions { get; set; } = new List<Transactions>();
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

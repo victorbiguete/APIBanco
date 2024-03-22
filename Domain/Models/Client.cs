@@ -13,8 +13,10 @@ public class Client
     public int Id { get; set; }
     [Key]
     [Required]
-    public ulong Cpf { get; set; }
+    public string Cpf { get; set; } = null!;
+    [Required]
     public string Email { get; set; } = null!;
+    [Required]
     public string Password { get; set; } = null!;
     public string Name { get; set; } = null!;
     public string PhoneNumber { get; set; } = null!;

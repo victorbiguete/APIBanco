@@ -7,7 +7,8 @@ public class Adress
     [Key]
     [Required]
     public int Id { get; set; }
-    public ulong Cpf { get; set; }
+    [Required]
+    public string Cpf { get; set; } = null!;
     public int ZipCode { get; set; }
     public string Street { get; set; } = null!;
     public int HouseNumber { get; set; }
