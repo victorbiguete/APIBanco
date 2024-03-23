@@ -9,7 +9,8 @@ public class AppDbContext : DbContext
     public DbSet<Adress> Adresses { get; set; }
     public DbSet<BankAccount> BankAccounts { get; set; }
     public DbSet<Transactions> Transactions { get; set; }
-
+    public DbSet<Loan> Loans { get; set; } 
+    public DbSet<Insurance> Insurances { get; set; }
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -38,6 +39,23 @@ public class AppDbContext : DbContext
         builder.Entity<Transactions>().Property(x => x.Value).IsRequired();
         builder.Entity<Transactions>().Property(propertyExpression: x => x.Cpf).IsRequired();
         builder.Entity<Transactions>().Property(propertyExpression: x => x.Type).IsRequired();
+        
+        builder.Entity<Loan>().HasKey(x => x.Id);
+        builder.Entity<Loan>().Property(x => x.Id).ValueGeneratedOnAdd();
+        builder.Entity<Loan>().Property(x => x.LoanAmount).IsRequired();
+        builder.Entity<Loan>().Property(x => x.InterestRate).IsRequired();
+        builder.Entity<Loan>().Property(x => x.LoanTermMonths).IsRequired();
+        builder.Entity<Loan>().Property(x => x.ContractDate).IsRequired();
+
+        builder.Entity<Insurance>().HasKey(x => x.Id);
+        builder.Entity<Insurance>().Property(x => x.Id).ValueGeneratedOnAdd();
+        builder.Entity<Insurance>().Property(x => x.InsuranceType).IsRequired();
+        builder.Entity<Insurance>().Property(x => x.Coverage).IsRequired();
+        builder.Entity<Insurance>().Property(x => x.Company).IsRequired();
+        builder.Entity<Insurance>().Property(x => x.PolicyNumber).IsRequired();
+        builder.Entity<Insurance>().Property(x => x.StartDate).IsRequired();
+        builder.Entity<Insurance>().Property(x => x.EndDate).IsRequired();
+        builder.Entity<Insurance>().Property(x => x.Premium).IsRequired();
     }
 }
 // builder.Entity<Category>().ToTable("Categories");
