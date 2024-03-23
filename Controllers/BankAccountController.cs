@@ -1,12 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
 
-using APIBanco.Domain.Models;
 using APIBanco.Domain.Dtos;
 using APIBanco.Services;
 using APIBanco.Domain.Enums;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using APIBanco.Domain.Models.ApiTaskResponses;
+using APIBanco.Domain.Models.Exceptions;
+using APIBanco.Domain.Models.DbContext;
 
 namespace APIBanco.Controllers;
 
@@ -42,10 +44,10 @@ public class BankAccountController : ControllerBase
     [HttpGet]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(type: typeof(BankAccountResponseDto), statusCode: StatusCodes.Status200OK)]
-    [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
-    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<IEnumerable<BankAccountResponseDto>>> Get(
+    [ProducesResponseType(type: typeof(ApiTaskBankAccountsResponse), statusCode: StatusCodes.Status200OK)]
+    [ProducesResponseType(type: typeof(ApiTaskErrors), statusCode: StatusCodes.Status404NotFound)]
+    [ProducesResponseType(type: typeof(ApiTaskErrors), statusCode: StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ApiTaskBankAccountsResponse>> Get(
         [FromQuery(Name = "id")] int? id = null,
         [FromQuery(Name = "cpf")] string? cpf = null)
     {
@@ -55,7 +57,7 @@ public class BankAccountController : ControllerBase
             {
                 IEnumerable<BankAccount>? BackAccounts = await _bankAccountService.GetAsync();
                 IEnumerable<BankAccountResponseDto>? responses = _mapper.Map<IEnumerable<BankAccountResponseDto>>(source: BackAccounts);
-                return Ok(new ApiTaskSuccess
+                return Ok(new ApiTaskBankAccountsResponse
                 {
                     Content = responses
                 });
@@ -71,9 +73,9 @@ public class BankAccountController : ControllerBase
             }
 
             BankAccountResponseDto? response = _mapper.Map<BankAccountResponseDto>(source: BackAccount);
-            return Ok(new ApiTaskSuccess
+            return Ok(new ApiTaskBankAccountsResponse
             {
-                Content = response
+                Content = new List<BankAccountResponseDto> { response }
             });
         }
         catch (KeyNotFoundException e)
@@ -103,14 +105,14 @@ public class BankAccountController : ControllerBase
     /// <response code="202">Accepted. The bank account status was updated.</response>
     /// <response code="404">Not found. The bank account was not found.</response>
     /// <response code="400">Bad request. There was an error in the request.</response>
-    [HttpPut(template: "{id}")]
+    [HttpPatch(template: "{id}")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(statusCode: StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(statusCode: StatusCodes.Status202Accepted)]
-    [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
-    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Put(
+    [ProducesResponseType(type: typeof(ApiTaskBankAccountsResponse), statusCode: StatusCodes.Status202Accepted)]
+    [ProducesResponseType(type: typeof(ApiTaskErrors), statusCode: StatusCodes.Status404NotFound)]
+    [ProducesResponseType(type: typeof(ApiTaskErrors), statusCode: StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ApiTaskBankAccountsResponse>> Patch(
         [FromBody] AccountStatus AcountStatus,
         int id)
     {
@@ -140,10 +142,11 @@ public class BankAccountController : ControllerBase
 
         try
         {
-            BankAccount? response = await _bankAccountService.UpdateStatusAsync(id: id, status: AcountStatus);
-            return Accepted(new ApiTaskSuccess
+            BankAccount? bankAccounts = await _bankAccountService.UpdateStatusAsync(id: id, status: AcountStatus);
+            BankAccountResponseDto? response = _mapper.Map<BankAccountResponseDto>(source: bankAccounts);
+            return Accepted(new ApiTaskBankAccountsResponse
             {
-                Content = response
+                Content = new List<BankAccountResponseDto> { response }
             });
         }
         catch (KeyNotFoundException e)

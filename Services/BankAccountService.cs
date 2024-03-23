@@ -1,7 +1,7 @@
-using APIBanco.Domain.Models;
 using APIBanco.Domain.Enums;
 using APIBanco.Domain.Contexts;
 using Microsoft.EntityFrameworkCore;
+using APIBanco.Domain.Models.DbContext;
 
 namespace APIBanco.Services;
 

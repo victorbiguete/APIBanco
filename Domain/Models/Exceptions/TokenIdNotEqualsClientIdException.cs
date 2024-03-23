@@ -1,4 +1,4 @@
-namespace APIBanco.Domain.Models;
+namespace APIBanco.Domain.Models.Exceptions;
 
 public class TokenIdNotEqualsClientIdException : Exception
 {

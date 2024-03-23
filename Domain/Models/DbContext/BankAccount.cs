@@ -1,8 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using APIBanco.Domain.Enums;
-using Microsoft.AspNetCore.Mvc.ApplicationModels;
 
-namespace APIBanco.Domain.Models;
+namespace APIBanco.Domain.Models.DbContext;
 
 public class BankAccount
 {
@@ -25,10 +24,10 @@ public class BankAccount
     public void StatusCheck()
     {
         if (this.Status == AccountStatus.Blocked)
-            throw new Exception(message: "Account Blocked.");
+            throw new Exception(message: "Account Blocked. Please contact support for more information.");
 
         if (this.Status == AccountStatus.Inactive)
-            throw new Exception(message: "Account Inactive.");
+            throw new Exception(message: "Account Inactive. Please contact support.");
 
         if (this.Status == AccountStatus.Closed)
             throw new Exception(message: "Account Closed.");

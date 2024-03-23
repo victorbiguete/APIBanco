@@ -1,9 +1,6 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.Design;
-using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Identity;
 
-namespace APIBanco.Domain.Models;
+namespace APIBanco.Domain.Models.DbContext;
 
 
 public class Client

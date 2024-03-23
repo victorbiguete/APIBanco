@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
 
-using APIBanco.Domain.Models;
 using APIBanco.Domain.Dtos;
 using APIBanco.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using APIBanco.Domain.Models.DbContext;
+using APIBanco.Domain.Models.ApiTaskResponses;
+using APIBanco.Domain.Models.Exceptions;
 
 namespace APIBanco.Controllers;
 
@@ -38,10 +40,10 @@ public class AdressController : ControllerBase
     [HttpGet]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(type: typeof(AdressResponseDto), statusCode: StatusCodes.Status200OK)]
-    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IEnumerable<AdressResponseDto>>> Get(
+    [ProducesResponseType(type: typeof(ApiTaskAdressesResponse), statusCode: StatusCodes.Status200OK)]
+    [ProducesResponseType(type: typeof(ApiTaskErrors), statusCode: StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(type: typeof(ApiTaskErrors), statusCode: StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiTaskAdressesResponse>> Get(
         [FromQuery(Name = "id")] int? id = null,
         [FromQuery(Name = "cpf")] string? cpf = null)
     {
@@ -51,7 +53,7 @@ public class AdressController : ControllerBase
             {
                 IEnumerable<Adress>? adresses = await _adressService.GetAsync();
                 IEnumerable<AdressResponseDto>? responses = _mapper.Map<IEnumerable<AdressResponseDto>>(source: adresses);
-                return Ok(new ApiTaskSuccess
+                return Ok(new ApiTaskAdressesResponse
                 {
                     Content = responses
                 });
@@ -68,9 +70,9 @@ public class AdressController : ControllerBase
             }
 
             AdressResponseDto? response = _mapper.Map<AdressResponseDto>(source: adress);
-            return Ok(new ApiTaskSuccess
+            return Ok(new ApiTaskAdressesResponse
             {
-                Content = response
+                Content = new List<AdressResponseDto> { response }
             });
         }
         catch (KeyNotFoundException e)
@@ -104,10 +106,10 @@ public class AdressController : ControllerBase
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(statusCode: StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(type: typeof(AdressResponseDto), statusCode: StatusCodes.Status202Accepted)]
-    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<AdressResponseDto>> Put(
+    [ProducesResponseType(type: typeof(ApiTaskAdressesResponse), statusCode: StatusCodes.Status202Accepted)]
+    [ProducesResponseType(type: typeof(ApiTaskErrors), statusCode: StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(type: typeof(ApiTaskErrors), statusCode: StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiTaskAdressesResponse>> Put(
         int id,
         [FromBody] AdressRequestDto adress)
     {
@@ -143,9 +145,9 @@ public class AdressController : ControllerBase
             newAdress = await _adressService.UpdateAsync(adress: newAdress);
 
             AdressResponseDto? response = _mapper.Map<AdressResponseDto>(source: newAdress);
-            return Accepted(new ApiTaskSuccess
+            return Accepted(new ApiTaskAdressesResponse
             {
-                Content = response
+                Content = new List<AdressResponseDto> { response }
             });
         }
         catch (KeyNotFoundException e)

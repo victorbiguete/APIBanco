@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace APIBanco.Domain.Models;
+namespace APIBanco.Domain.Models.DbContext;
 
 public class Adress
 {

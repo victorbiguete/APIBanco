@@ -1,12 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
 
-using APIBanco.Domain.Models;
 using APIBanco.Domain.Dtos;
 using APIBanco.Services;
 using AutoMapper;
 using APIBanco.Domain.Enums;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using APIBanco.Domain.Models.DbContext;
+using APIBanco.Domain.Models.ApiTaskResponses;
+using APIBanco.Domain.Models.Exceptions;
 
 
 namespace APIBanco.Controllers;
@@ -43,11 +45,12 @@ public class TransactionsController : ControllerBase
     [HttpGet]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(type: typeof(IEnumerable<TransactionResponseDto>), statusCode: StatusCodes.Status200OK)]
+    [ProducesResponseType(type: typeof(ApiTaskTransactionsResponse), statusCode: StatusCodes.Status200OK)]
     [ProducesResponseType(statusCode: StatusCodes.Status204NoContent)]
-    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<IEnumerable<TransactionResponseDto>>> Get(
+    [ProducesResponseType(type: typeof(ApiTaskErrors), statusCode: StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(type: typeof(ApiTaskErrors), statusCode: StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiTaskTransactionsResponse>> Get(
+        [FromQuery(Name = "transactiontype")] int? TransactionType = null,
         [FromQuery(Name = "cpf")] string? Cpf = null,
         [FromQuery(Name = "id")] int? Id = null,
         [FromQuery(Name = "lessthendays")] int? LessThenDays = null,
@@ -55,6 +58,19 @@ public class TransactionsController : ControllerBase
     {
         try
         {
+            if (TransactionType != null)
+            {
+                IEnumerable<Transactions>? list = await _transactionsService.GetByType(type: (TransactionType)TransactionType);
+                if (list == null)
+                {
+                    return NoContent();
+                }
+                IEnumerable<TransactionResponseDto>? transactions = _mapper.Map<IEnumerable<TransactionResponseDto>>(source: list);
+                return Ok(new ApiTaskTransactionsResponse
+                {
+                    Content = transactions
+                });
+            }
             if (Id == null && Cpf == null)
             {
                 if (LessThenDays == null)
@@ -65,7 +81,7 @@ public class TransactionsController : ControllerBase
                         return NoContent();
                     }
                     IEnumerable<TransactionResponseDto>? transactions = _mapper.Map<IEnumerable<TransactionResponseDto>>(source: list);
-                    return Ok(new ApiTaskSuccess
+                    return Ok(new ApiTaskTransactionsResponse
                     {
                         Content = transactions
                     });
@@ -89,7 +105,7 @@ public class TransactionsController : ControllerBase
                         return NoContent();
                     }
                     IEnumerable<TransactionResponseDto>? response = _mapper.Map<IEnumerable<TransactionResponseDto>>(source: transactions);
-                    return Ok(new ApiTaskSuccess
+                    return Ok(new ApiTaskTransactionsResponse
                     {
                         Content = response
                     });
@@ -97,14 +113,15 @@ public class TransactionsController : ControllerBase
             }
             else if (Id != null)
             {
-                Transactions? response = await _transactionsService.GetByIdAsync(Id: (int)Id);
-                if (response == null)
+                Transactions? transaction = await _transactionsService.GetByIdAsync(Id: (int)Id);
+                if (transaction == null)
                 {
                     return NotFound();
                 }
-                return Ok(new ApiTaskSuccess
+                TransactionResponseDto? response = _mapper.Map<TransactionResponseDto>(source: transaction);
+                return Ok(new ApiTaskTransactionsResponse
                 {
-                    Content = response
+                    Content = new List<TransactionResponseDto> { response }
                 });
             }
             else if (Cpf != null)
@@ -117,7 +134,7 @@ public class TransactionsController : ControllerBase
                         return NoContent();
                     }
                     IEnumerable<TransactionResponseDto>? transactions = _mapper.Map<IEnumerable<TransactionResponseDto>>(source: list);
-                    return Ok(new ApiTaskSuccess
+                    return Ok(new ApiTaskTransactionsResponse
                     {
                         Content = transactions
                     });
@@ -140,7 +157,7 @@ public class TransactionsController : ControllerBase
                         return NoContent();
                     }
                     IEnumerable<TransactionResponseDto>? response = _mapper.Map<IEnumerable<TransactionResponseDto>>(source: transactions);
-                    return Ok(new ApiTaskSuccess
+                    return Ok(new ApiTaskTransactionsResponse
                     {
                         Content = response
                     });
@@ -183,10 +200,10 @@ public class TransactionsController : ControllerBase
     [HttpPost(template: "deposit/{cpf}")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(type: typeof(TransactionResponseDto), statusCode: StatusCodes.Status201Created)]
-    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<Transactions>> PostDeposity(
+    [ProducesResponseType(type: typeof(ApiTaskTransactionsResponse), statusCode: StatusCodes.Status201Created)]
+    [ProducesResponseType(type: typeof(ApiTaskErrors), statusCode: StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(type: typeof(ApiTaskErrors), statusCode: StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiTaskTransactionsResponse>> PostDeposity(
         [FromBody] TransactionRequestDto transaction,
         string cpf)
     {
@@ -209,9 +226,9 @@ public class TransactionsController : ControllerBase
 
             TransactionResponseDto? response = _mapper.Map<TransactionResponseDto>(source: newTransaction);
 
-            return CreatedAtAction(actionName: nameof(Get), routeValues: new { id = response.Id }, value: new ApiTaskSuccess
+            return CreatedAtAction(actionName: nameof(Get), routeValues: new { id = response.Id }, value: new ApiTaskTransactionsResponse
             {
-                Content = response
+                Content = new List<TransactionResponseDto> { response }
             });
         }
         catch (KeyNotFoundException e)
@@ -246,10 +263,10 @@ public class TransactionsController : ControllerBase
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(statusCode: StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(type: typeof(TransactionResponseDto), statusCode: StatusCodes.Status201Created)]
-    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<Transactions>> PostWithdraw(
+    [ProducesResponseType(type: typeof(ApiTaskTransactionsResponse), statusCode: StatusCodes.Status201Created)]
+    [ProducesResponseType(type: typeof(ApiTaskErrors), statusCode: StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(type: typeof(ApiTaskErrors), statusCode: StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiTaskTransactionsResponse>> PostWithdraw(
         [FromBody] TransactionRequestDto transaction,
         string cpf)
     {
@@ -285,9 +302,9 @@ public class TransactionsController : ControllerBase
             newTransaction.Date = DateTime.UtcNow;
             await _transactionsService.CreateAsync(Transaction: newTransaction, Source: cpf);
             TransactionResponseDto? response = _mapper.Map<TransactionResponseDto>(source: newTransaction);
-            return CreatedAtAction(actionName: nameof(Get), routeValues: new { id = response.Id }, value: new ApiTaskSuccess
+            return CreatedAtAction(actionName: nameof(Get), routeValues: new { id = response.Id }, value: new ApiTaskTransactionsResponse
             {
-                Content = response
+                Content = new List<TransactionResponseDto> { response }
             });
         }
         catch (KeyNotFoundException e)
@@ -322,10 +339,11 @@ public class TransactionsController : ControllerBase
     [HttpPost(template: "transfer/{cpf}/{cpftarget}")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(type: typeof(TransactionResponseDto), statusCode: StatusCodes.Status201Created)]
-    [ProducesResponseType(statusCode: StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(statusCode: StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<Transactions>> PostTransfer(
+    [ProducesResponseType(statusCode: StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(type: typeof(ApiTaskTransactionsResponse), statusCode: StatusCodes.Status201Created)]
+    [ProducesResponseType(type: typeof(ApiTaskErrors), statusCode: StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(type: typeof(ApiTaskErrors), statusCode: StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApiTaskTransactionsResponse>> PostTransfer(
         [FromBody] TransactionRequestDto transaction,
         string cpf, string cpftarget)
     {
@@ -361,9 +379,9 @@ public class TransactionsController : ControllerBase
             newTransaction.Date = DateTime.UtcNow;
             await _transactionsService.CreateAsync(Transaction: newTransaction, Source: cpf, Target: cpftarget);
             TransactionResponseDto? response = _mapper.Map<TransactionResponseDto>(source: newTransaction);
-            return CreatedAtAction(actionName: nameof(Get), routeValues: new { id = response.Id }, value: new ApiTaskSuccess
+            return CreatedAtAction(actionName: nameof(Get), routeValues: new { id = response.Id }, value: new ApiTaskTransactionsResponse
             {
-                Content = response
+                Content = new List<TransactionResponseDto> { response }
             });
         }
         catch (KeyNotFoundException e)

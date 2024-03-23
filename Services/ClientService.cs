@@ -1,8 +1,8 @@
-using APIBanco.Domain.Models;
 using APIBanco.Domain.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using APIBanco.Domain.Dtos;
+using APIBanco.Domain.Models.DbContext;
 
 namespace APIBanco.Services;
 
@@ -29,15 +29,17 @@ public class ClientService
 
         if (clientLogin == null)
         {
-            throw new KeyNotFoundException("Cpf  incorrect.");
+            throw new KeyNotFoundException("Cpf   or Password incorrect.");
         }
 
         bool isPasswordCorrect = BCrypt.Net.BCrypt.Verify(client.Password, clientLogin.Password);
 
         if (!isPasswordCorrect)
         {
-            throw new KeyNotFoundException("Password incorrect.");
+            throw new KeyNotFoundException("Cpf   or Password incorrect.");
         }
+
+        clientLogin.BankAccount.StatusCheck();
 
         string token = _jwtService.GenerateToken(client: clientLogin);
 

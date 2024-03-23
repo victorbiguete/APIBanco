@@ -1,7 +1,7 @@
-using APIBanco.Domain.Models;
 using APIBanco.Domain.Enums;
 using APIBanco.Domain.Contexts;
 using Microsoft.EntityFrameworkCore;
+using APIBanco.Domain.Models.DbContext;
 
 namespace APIBanco.Services;
 
@@ -160,5 +160,22 @@ public class TransactionsService
         await _dbContext.SaveChangesAsync();
 
         return Transaction;
+    }
+
+
+
+    public async Task<IEnumerable<Transactions>?> GetByType(TransactionType type)
+    {
+        List<Transactions>? transactions = await _dbContext.Transactions
+            .AsQueryable()
+            .Where(x => x.Type == type)
+            .ToListAsync();
+
+        if (transactions.Count == 0)
+        {
+            return null;
+        }
+
+        return transactions;
     }
 }

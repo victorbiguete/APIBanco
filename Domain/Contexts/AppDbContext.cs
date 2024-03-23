@@ -1,4 +1,4 @@
-using APIBanco.Domain.Models;
+using APIBanco.Domain.Models.DbContext;
 using Microsoft.EntityFrameworkCore;
 
 namespace APIBanco.Domain.Contexts;

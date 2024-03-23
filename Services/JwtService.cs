@@ -1,7 +1,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using APIBanco.Domain.Models;
+using APIBanco.Domain.Models.DbContext;
+using APIBanco.Domain.Models.Exceptions;
 using Microsoft.IdentityModel.Tokens;
 
 namespace APIBanco.Services;

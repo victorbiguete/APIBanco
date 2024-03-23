@@ -1,4 +1,6 @@
-namespace APIBanco.Domain.Models;
+using APIBanco.Domain.Dtos;
+
+namespace APIBanco.Domain.Models.ApiTaskResponses;
 
 public class ApiTaskRegisterResponse : IApiTaskResult
 {
@@ -6,5 +8,5 @@ public class ApiTaskRegisterResponse : IApiTaskResult
     public string AuthenticationType { get; set; } = "Jwt Bearer";
     public string TokenType { get; set; } = "Authorization: Bearer";
     public string Token { get; set; } = string.Empty;
-    public Object? Content { get; set; }
+    public ClientResponseDto Content { get; set; } = null!;
 }

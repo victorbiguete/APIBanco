@@ -1,13 +1,11 @@
 using APIBanco.Services;
 using APIBanco.Domain.Contexts;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity;
 using APIBanco.Domain.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
-using System.Reflection;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);

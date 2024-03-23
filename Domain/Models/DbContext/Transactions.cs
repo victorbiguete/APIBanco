@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using APIBanco.Domain.Enums;
 
-namespace APIBanco.Domain.Models;
+namespace APIBanco.Domain.Models.DbContext;
 
 public class Transactions
 {
