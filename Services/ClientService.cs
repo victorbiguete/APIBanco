@@ -94,6 +94,8 @@ public class ClientService
     /// <returns>The created client.</returns>
     public async Task<Client> CreateAsync(Client Client)
     {
+        Client.ValidateCpf();
+
         Client.BankAccount = new BankAccount();
         Client.BankAccount.Cpf = Client.Cpf;
 
