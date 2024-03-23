@@ -40,6 +40,8 @@ builder.Services.AddScoped<ClientService>();
 builder.Services.AddScoped<BankAccountService>();
 builder.Services.AddScoped<TransactionsService>();
 builder.Services.AddScoped<AdressService>();
+builder.Services.AddScoped<LoanService>();
+builder.Services.AddScoped<InsuranceService>();
 
 // DbContext , EntityFramework , Sqlite
 builder.Services.AddDbContext<AppDbContext>(options =>

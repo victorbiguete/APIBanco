@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using APIBanco.Domain.Dtos;
+﻿using APIBanco.Domain.Dtos;
 using APIBanco.Domain.Models;
 using APIBanco.Services;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace APIBanco.Controllers
 {
@@ -24,7 +24,6 @@ namespace APIBanco.Controllers
         [HttpPost("loan")]
         public async Task<IActionResult> CreateLoan(LoanRequestDto loanDto)
         {
-            // Mapear LoanRequestDto para Loan (use AutoMapper se preferir)
             var loan = new Loan
             {
                 LoanAmount = loanDto.LoanAmount,
@@ -33,31 +32,28 @@ namespace APIBanco.Controllers
                 ContractDate = loanDto.ContractDate
             };
 
-            // Chamar o serviço para criar o empréstimo
             var createdLoan = await _loanService.CreateLoanAsync(loan);
 
             return Ok(createdLoan);
         }
 
-        [HttpPost("insurance")]
-        public async Task<IActionResult> CreateInsurance(InsuranceRequestDto insuranceDto)
+        [HttpPut("loan/{id}")]
+        public async Task<IActionResult> UpdateLoan(int id, LoanRequestDto loanDto)
         {
-            // Mapear InsuranceRequestDto para Insurance (use AutoMapper se preferir)
-            var insurance = new Insurance
+            var existingLoan = await _loanService.GetLoanByIdAsync(id);
+            if (existingLoan == null)
             {
-                InsuranceType = insuranceDto.InsuranceType,
-                Coverage = insuranceDto.Coverage,
-                Company = insuranceDto.Company,
-                PolicyNumber = insuranceDto.PolicyNumber,
-                StartDate = insuranceDto.StartDate,
-                EndDate = insuranceDto.EndDate,
-                Premium = insuranceDto.Premium
-            };
+                return NotFound($"Loan with ID {id} not found.");
+            }
 
-            // Chamar o serviço para criar o seguro
-            var createdInsurance = await _insuranceService.CreateInsuranceAsync(insurance);
+            existingLoan.LoanAmount = loanDto.LoanAmount;
+            existingLoan.InterestRate = loanDto.InterestRate;
+            existingLoan.LoanTermMonths = loanDto.LoanTermMonths;
+            existingLoan.ContractDate = loanDto.ContractDate;
 
-            return Ok(createdInsurance);
+            await _loanService.UpdateLoanAsync(existingLoan);
+
+            return Ok(existingLoan);
         }
 
         [HttpGet("loan")]
@@ -90,6 +86,47 @@ namespace APIBanco.Controllers
             {
                 return NotFound(ex.Message);
             }
+        }
+
+        [HttpPost("insurance")]
+        public async Task<IActionResult> CreateInsurance(InsuranceRequestDto insuranceDto)
+        {
+            var insurance = new Insurance
+            {
+                InsuranceType = insuranceDto.InsuranceType,
+                Coverage = insuranceDto.Coverage,
+                Company = insuranceDto.Company,
+                PolicyNumber = insuranceDto.PolicyNumber,
+                StartDate = insuranceDto.StartDate,
+                EndDate = insuranceDto.EndDate,
+                Premium = insuranceDto.Premium
+            };
+
+            var createdInsurance = await _insuranceService.CreateInsuranceAsync(insurance);
+
+            return Ok(createdInsurance);
+        }
+
+        [HttpPut("insurance/{id}")]
+        public async Task<IActionResult> UpdateInsurance(int id, InsuranceRequestDto insuranceDto)
+        {
+            var existingInsurance = await _insuranceService.GetInsuranceByIdAsync(id);
+            if (existingInsurance == null)
+            {
+                return NotFound($"Insurance with ID {id} not found.");
+            }
+
+            existingInsurance.InsuranceType = insuranceDto.InsuranceType;
+            existingInsurance.Coverage = insuranceDto.Coverage;
+            existingInsurance.Company = insuranceDto.Company;
+            existingInsurance.PolicyNumber = insuranceDto.PolicyNumber;
+            existingInsurance.StartDate = insuranceDto.StartDate;
+            existingInsurance.EndDate = insuranceDto.EndDate;
+            existingInsurance.Premium = insuranceDto.Premium;
+
+            await _insuranceService.UpdateInsuranceAsync(existingInsurance);
+
+            return Ok(existingInsurance);
         }
 
         [HttpGet("insurance")]
