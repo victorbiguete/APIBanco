@@ -39,16 +39,6 @@ public class InvestmentService
         return response;
     }
 
-     public async Task<Investment> GetByStatusAsync(AccountStatus Status)
-    {
-        Investment? response = await _dbContext.Investments.AsQueryable().Where(predicate: x => x.Status == Status).FirstOrDefaultAsync();
-
-        if (response == null)
-            throw new KeyNotFoundException("Status not found: " + Status);
-
-        return response;
-    }
-
     public async Task<Investment> CreateAsync(Investment Investment)
         {
             if (Investment == null)
@@ -62,19 +52,5 @@ public class InvestmentService
             return Investment;
     }
 
-    public async Task<Investment> UpdateStatusAsync(int id, AccountStatus status)
-    {
-        Investment? oldInvestment = await _dbContext.Investments.FirstOrDefaultAsync(x => x.Id == id);
-
-        if (oldInvestment == null)
-            throw new KeyNotFoundException("Investment not found: " + id);
-
-        oldInvestment.Status = status;
-
-        _dbContext.Investments.Update(oldInvestment);
-        await _dbContext.SaveChangesAsync();
-
-        return oldInvestment;
-    }
 
 }

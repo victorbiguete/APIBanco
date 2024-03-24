@@ -10,14 +10,11 @@ public class AppDbContext : DbContext
     public DbSet<Adress> Adresses { get; set; }
     public DbSet<BankAccount> BankAccounts { get; set; }
     public DbSet<Transactions> Transactions { get; set; }
-<<<<<<< HEAD
-    public DbSet<Investment> Investments { get; set; }
-=======
     public DbSet<Loan> Loans { get; set; } 
     public DbSet<Insurance> Insurances { get; set; }
     public DbSet<CreditCard> CreditCards { get; set; }
     public DbSet<CardTransaction> CardTransactions { get; set; }
->>>>>>> master
+    public DbSet<Investment> Investments { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -36,7 +33,6 @@ public class AppDbContext : DbContext
         builder.Entity<Client>().HasOne(x => x.Adress).WithOne(x => x.Client).HasForeignKey<Adress>(x => x.ClientId);
         builder.Entity<Client>().HasOne(x => x.BankAccount).WithOne(x => x.Client).HasForeignKey<BankAccount>(x => x.ClientId);
 
-
         builder.Entity<Adress>().HasKey(x => x.Id);
         builder.Entity<Adress>().Property(x => x.Id).ValueGeneratedOnAdd();
         builder.Entity<Adress>().Property(x => x.Cpf).IsRequired();
@@ -53,7 +49,7 @@ public class AppDbContext : DbContext
         builder.Entity<Transactions>().Property(x => x.Value).IsRequired();
         builder.Entity<Transactions>().Property(propertyExpression: x => x.Cpf).IsRequired();
         builder.Entity<Transactions>().Property(propertyExpression: x => x.Type).IsRequired();
-        
+
         builder.Entity<Loan>().HasKey(x => x.Id);
         builder.Entity<Loan>().Property(x => x.Id).ValueGeneratedOnAdd();
         builder.Entity<Loan>().Property(x => x.LoanAmount).IsRequired();
@@ -90,6 +86,5 @@ public class AppDbContext : DbContext
         builder.Entity<Investment>().Property(x => x.MaxRedemptionTerm).IsRequired();
         builder.Entity<Investment>().Property(x => x.MinRedemptionValue).IsRequired();
         builder.Entity<Investment>().Property(x => x.RateYield).IsRequired();
-        builder.Entity<Investment>().Property(x => x.Status).IsRequired();
     }
 }

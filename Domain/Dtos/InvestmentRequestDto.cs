@@ -27,5 +27,5 @@ public class InvestmentRequestDto
     [Required]
     public double RateYield{ get; set; }
     
-    public AccountStatus Status { get; set; }
+
 }

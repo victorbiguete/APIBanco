@@ -8,16 +8,16 @@ namespace APIBanco.Domain.Models
         public int Id { get; set; }
 
         [Required(ErrorMessage = "Insurance type is required.")]
-        public string InsuranceType { get; set; }
+        public string? InsuranceType { get; set; }
 
         [Required(ErrorMessage = "Insurance coverage is required.")]
-        public string Coverage { get; set; }
+        public string? Coverage { get; set; }
 
         [Required(ErrorMessage = "Insurance company is required.")]
-        public string Company { get; set; }
+        public string? Company { get; set; }
 
         [Required(ErrorMessage = "Policy number is required.")]
-        public string PolicyNumber { get; set; }
+        public string? PolicyNumber { get; set; }
 
         [Required(ErrorMessage = "Insurance start date is required.")]
         public DateTime StartDate { get; set; }

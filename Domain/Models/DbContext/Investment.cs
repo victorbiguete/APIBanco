@@ -35,19 +35,5 @@ namespace APIBanco.Domain.Models.DbContext
         // taxaRendimento
         [Required]
         public double RateYield{ get; set; }
-
-        public AccountStatus Status { get; set; } = AccountStatus.Active;
-    
-        public void StatusCheck()
-        {
-            if (this.Status == AccountStatus.Blocked)
-                throw new Exception(message: "Account Blocked. Please contact support for more information.");
-
-            if (this.Status == AccountStatus.Inactive)
-                throw new Exception(message: "Account Inactive. Please contact support.");
-
-            if (this.Status == AccountStatus.Closed)
-                throw new Exception(message: "Account Closed.");
-        }
     }
 }

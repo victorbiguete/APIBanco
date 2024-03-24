@@ -18,13 +18,11 @@ namespace APIBanco.Controllers;
 public class InvestmentsController : ControllerBase
 {
     private readonly InvestmentService _investmentService;
-    private readonly JwtService _jwtService;
     private readonly IMapper _mapper;
 
-    public InvestmentsController(InvestmentService investmentService, JwtService jwtService, IMapper mapper)
+    public InvestmentsController(InvestmentService investmentService, IMapper mapper)
     {
         _investmentService = investmentService;
-         _jwtService = jwtService;
         _mapper = mapper;
     }
 
@@ -85,65 +83,6 @@ public class InvestmentsController : ControllerBase
         }
     }
 
-
-    [HttpPatch(template: "{id}")]
-    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-    [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(statusCode: StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(type: typeof(ApiTaskInvestmentResponse), statusCode: StatusCodes.Status202Accepted)]
-    [ProducesResponseType(type: typeof(ApiTaskErrors), statusCode: StatusCodes.Status404NotFound)]
-    [ProducesResponseType(type: typeof(ApiTaskErrors), statusCode: StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ApiTaskInvestmentResponse>> Patch(
-        [FromBody] AccountStatus AcountStatus, int id)
-    {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(new ApiTaskErrors
-            {
-                Erros = ModelState.Values.SelectMany(x => x.Errors.Select(y => y.ErrorMessage))
-            });
-        }
-
-        try
-        {
-            int TokenId = _jwtService.GetIdClaimToken(User: User);
-            if (TokenId != id)
-            {
-                return StatusCode(StatusCodes.Status403Forbidden);
-            }
-        }
-        catch (TokenIdNotEqualsClientIdException e)
-        {
-            return BadRequest(new ApiTaskErrors
-            {
-                Erros = new List<string> { e.Message }
-            });
-        }
-
-        try
-        {
-            Investment? investments = await _investmentService.UpdateStatusAsync(id: id, status: AcountStatus);
-            InvestmentResponseDto? response = _mapper.Map<InvestmentResponseDto>(source: investments);
-            return Accepted(new ApiTaskInvestmentResponse
-            {
-                Content = new List<InvestmentResponseDto> { response }
-            });
-        }
-        catch (KeyNotFoundException e)
-        {
-            return NotFound(new ApiTaskErrors
-            {
-                Erros = new List<string> { e.Message }
-            });
-        }
-        catch (Exception e)
-        {
-            return BadRequest(new ApiTaskErrors
-            {
-                Erros = new List<string> { e.Message }
-            });
-        }
-    }
 
     [HttpPost]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]

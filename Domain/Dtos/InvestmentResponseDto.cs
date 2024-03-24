@@ -12,5 +12,4 @@ public class InvestmentResponseDto
    public DateTime MaxRedemptionTerm{ get; set; }
    public decimal MinRedemptionValue { get; set; }
    public double RateYield { get; set; }
-   public AccountStatus Status { get; set; }
 }
