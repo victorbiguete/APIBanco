@@ -9,6 +9,7 @@ public class AppDbContext : DbContext
     public DbSet<Adress> Adresses { get; set; }
     public DbSet<BankAccount> BankAccounts { get; set; }
     public DbSet<Transactions> Transactions { get; set; }
+    public DbSet<Investment> Investments { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -44,5 +45,16 @@ public class AppDbContext : DbContext
         builder.Entity<Transactions>().Property(x => x.Value).IsRequired();
         builder.Entity<Transactions>().Property(propertyExpression: x => x.Cpf).IsRequired();
         builder.Entity<Transactions>().Property(propertyExpression: x => x.Type).IsRequired();
+
+        builder.Entity<Investment>().HasKey(x => x.Id);
+        builder.Entity<Investment>().Property(x => x.Id).ValueGeneratedOnAdd();
+        builder.Entity<Investment>().Property(x => x.Name).IsRequired();
+        builder.Entity<Investment>().Property(x => x.MaintenanceFee).IsRequired();
+        builder.Entity<Investment>().Property(x => x.MinContribution).IsRequired();
+        builder.Entity<Investment>().Property(x => x.MinRedemptionTerm).IsRequired();
+        builder.Entity<Investment>().Property(x => x.MaxRedemptionTerm).IsRequired();
+        builder.Entity<Investment>().Property(x => x.MinRedemptionValue).IsRequired();
+        builder.Entity<Investment>().Property(x => x.RateYield).IsRequired();
+        builder.Entity<Investment>().Property(x => x.Status).IsRequired();
     }
 }

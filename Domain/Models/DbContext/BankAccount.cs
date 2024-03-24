@@ -18,6 +18,8 @@ public class BankAccount
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+    public virtual List<Investment> Investments { get; set; } = new List<Investment>();
+
     public int? ClientId { get; set; }
     public virtual Client Client { get; set; } = null!;
 
@@ -68,4 +70,14 @@ public class BankAccount
         if (isWithdraw)
             destiny.Deposit(value: value);
     }
+
+    public void AddInvestment(Investment investment)
+    {
+        if (!Investments.Contains(investment))
+        {
+            Investments.Add(investment);
+        }
+    }
+
+    
 }
