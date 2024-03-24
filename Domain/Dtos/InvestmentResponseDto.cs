@@ -1,5 +1,3 @@
-using APIBanco.Domain.Enums;
-
 namespace APIBanco.Domain.Dtos;
 
 public class InvestmentResponseDto
