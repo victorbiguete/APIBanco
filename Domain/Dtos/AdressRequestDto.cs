@@ -5,13 +5,13 @@ namespace APIBanco.Domain.Dtos;
 public class AdressRequestDto
 {
     [Required]
-    public int ZipCode { get; set; }
+    public int cep { get; set; }
 
     [Required]
     public string Street { get; set; } = null!;
 
     [Required]
-    public int HouseNumber { get; set; }
+    public int number { get; set; }
 
     [Required]
     public string Neighborhood { get; set; } = null!;

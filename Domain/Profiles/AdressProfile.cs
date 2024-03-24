@@ -12,10 +12,12 @@ public class AdressProfile : Profile
         CreateMap<Adress, AdressResponseDto>().AfterMap((src, dest) =>
         {
             dest.State = src.UF;
+            dest.number = src.HouseNumber;
         });
         CreateMap<AdressRequestDto, Adress>().AfterMap((src, dest) =>
         {
             dest.UF = src.State;
+            dest.HouseNumber = src.number;
         });
     }
 }
