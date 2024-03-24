@@ -10,10 +10,11 @@ public class AppDbContext : DbContext
     public DbSet<Adress> Adresses { get; set; }
     public DbSet<BankAccount> BankAccounts { get; set; }
     public DbSet<Transactions> Transactions { get; set; }
-    public DbSet<Loan> Loans { get; set; }
+    public DbSet<Loan> Loans { get; set; } 
     public DbSet<Insurance> Insurances { get; set; }
     public DbSet<CreditCard> CreditCards { get; set; }
     public DbSet<CardTransaction> CardTransactions { get; set; }
+    public DbSet<Investment> Investments { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -31,7 +32,6 @@ public class AppDbContext : DbContext
         builder.Entity<Client>().HasAlternateKey(x => x.Cpf);
         builder.Entity<Client>().HasOne(x => x.Adress).WithOne(x => x.Client).HasForeignKey<Adress>(x => x.ClientId);
         builder.Entity<Client>().HasOne(x => x.BankAccount).WithOne(x => x.Client).HasForeignKey<BankAccount>(x => x.ClientId);
-
 
         builder.Entity<Adress>().HasKey(x => x.Id);
         builder.Entity<Adress>().Property(x => x.Id).ValueGeneratedOnAdd();
@@ -76,5 +76,15 @@ public class AppDbContext : DbContext
         builder.Entity<CreditCard>().Property(x => x.TotalLimit).IsRequired();
         builder.Entity<CreditCard>().Property(x => x.UsedLimit).IsRequired();
         builder.Entity<CreditCard>().HasMany(x => x.CardTransactions).WithOne(x => x.CreditCard).HasForeignKey(x => x.CreditCardId);
+
+        builder.Entity<Investment>().HasKey(x => x.Id);
+        builder.Entity<Investment>().Property(x => x.Id).ValueGeneratedOnAdd();
+        builder.Entity<Investment>().Property(x => x.Name).IsRequired();
+        builder.Entity<Investment>().Property(x => x.MaintenanceFee).IsRequired();
+        builder.Entity<Investment>().Property(x => x.MinContribution).IsRequired();
+        builder.Entity<Investment>().Property(x => x.MinRedemptionTerm).IsRequired();
+        builder.Entity<Investment>().Property(x => x.MaxRedemptionTerm).IsRequired();
+        builder.Entity<Investment>().Property(x => x.MinRedemptionValue).IsRequired();
+        builder.Entity<Investment>().Property(x => x.RateYield).IsRequired();
     }
 }

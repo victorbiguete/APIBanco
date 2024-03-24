@@ -9,11 +9,13 @@ public class TransactionsService
 {
     private readonly AppDbContext _dbContext;
     private BankAccountService _bankAccountService;
+    private ClientService _clientService;
 
-    public TransactionsService(AppDbContext dbContext, BankAccountService bankAccountService)
+    public TransactionsService(AppDbContext dbContext, BankAccountService bankAccountService, ClientService clientService)
     {
         _dbContext = dbContext;
         _bankAccountService = bankAccountService;
+        _clientService = clientService;
     }
 
     public async Task<IEnumerable<Transactions>> GetAsync()
@@ -135,8 +137,10 @@ public class TransactionsService
     /// <returns>The created transaction.</returns>
     public async Task<Transactions> CreateAsync(Transactions Transaction, string Source, string Target)
     {
-        BankAccount? bankAccountSource = await _bankAccountService.GetByCpfAsync(Cpf: Source);
-        BankAccount? bankAccountTarget = await _bankAccountService.GetByCpfAsync(Cpf: Target);
+        Client? clientSource = await _clientService.GetByCpfAsync(Cpf: Source);
+        Client? clientTarget = await _clientService.GetByCpfAsync(Cpf: Target);
+        BankAccount? bankAccountSource = clientSource.BankAccount;
+        BankAccount? bankAccountTarget = clientTarget.BankAccount;
 
         bankAccountSource.Transfer(destiny: bankAccountTarget, value: Transaction.Value);
 
@@ -144,6 +148,7 @@ public class TransactionsService
         await _bankAccountService.UpdateAsync(bankAccount: bankAccountTarget);
 
         Transaction.BankAccountId = bankAccountSource.Id;
+        Transaction.Name = clientTarget.Name;
         await _dbContext.Transactions.AddAsync(Transaction);
         await _dbContext.SaveChangesAsync();
 
@@ -151,7 +156,8 @@ public class TransactionsService
             cpf: Target,
             description: Transaction.Description ?? " ",
             value: Transaction.Value,
-            type: TransactionType.TransferIncome
+            type: TransactionType.TransferIncome,
+            name: clientSource.Name
         );
 
         transactionTarget.BankAccountId = bankAccountTarget.Id;
