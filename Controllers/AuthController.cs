@@ -1,4 +1,4 @@
-﻿using APIBanco.Context;
+﻿using APIBanco.Domain.Contexts;
 using APIBanco.Security;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,19 +13,19 @@ namespace APIBanco.Controllers
             _context = context;
         }
 
-        [HttpPost]
-        public IActionResult Auth(string username, string password)
-        {
-            //TODO
-            //Buscar no banco o usuario e senha correspondentes
-            //var User = _context.
-            if (username == "" && password == "")
-            {
-                var token = TokenService.GenerateToken(new Model.Conta());
-                return Ok(token);
-            }
+        //[HttpPost]
+        //public IActionResult Auth(string username, string password)
+        //{
+        //    //TODO
+        //    //Buscar no banco o usuario e senha correspondentes
+        //    //var User = _context.
+        //    if (username == "" && password == "")
+        //    {
+        //        var token = TokenService.GenerateToken(new Model.Conta());
+        //        return Ok(token);
+        //    }
                 
-            return BadRequest("Usuario ou Senha Invalidos");
-        }
+        //    return BadRequest("Usuario ou Senha Invalidos");
+        //}
     }
 }

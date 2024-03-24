@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using AutoMapper;
-
 using APIBanco.Domain.Dtos;
 using APIBanco.Services;
 using APIBanco.Domain.Enums;
