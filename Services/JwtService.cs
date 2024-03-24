@@ -15,11 +15,6 @@ public class JwtService
     {
         _configuration = configuration;
     }
-    /// <summary>
-    /// Generates a JWT token for the provided client.
-    /// </summary>
-    /// <param name="client">The client for whom the token is being generated.</param>
-    /// <returns>The generated JWT token.</returns>
     public string GenerateToken(Client client)
     {
         JwtSecurityTokenHandler? jwtTokenHandler = new JwtSecurityTokenHandler();
@@ -35,7 +30,6 @@ public class JwtService
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             }),
 
-            // Expires = DateTime.UtcNow.AddMinutes(1),
             Expires = DateTime.UtcNow.AddHours(1),
             // Expires = DateTime.UtcNow.AddDays(1),
 
@@ -49,12 +43,6 @@ public class JwtService
         return jwtToken;
     }
 
-    /// <summary>
-    /// Retrieves the Id claim from the JWT token.
-    /// </summary>
-    /// <param name="User">The principal representing the user.</param>
-    /// <returns>The Id value from the claim.</returns>
-    /// <exception cref="TokenIdNotEqualsClientIdException">Thrown when the Id claim is not found in the token.</exception>
     public int GetIdClaimToken(ClaimsPrincipal User)
     {
         try
@@ -71,16 +59,6 @@ public class JwtService
         }
     }
 
-    /// <summary>
-    /// Retrieves the Cpf claim from the JWT token.
-    /// </summary>
-    /// <param name="User">The principal representing the user.</param>
-    /// <returns>The Cpf value from the claim.</returns>
-    /// <exception cref="TokenIdNotEqualsClientIdException">Thrown when the Cpf claim is not found in the token.</exception>
-    /// <remarks>
-    /// This method retrieves the Cpf claim from the token.
-    /// If the claim is not found, it throws a <see cref="TokenIdNotEqualsClientIdException"/> exception.
-    /// </remarks>
     public string GetCpfClaimToken(ClaimsPrincipal User)
     {
         try
