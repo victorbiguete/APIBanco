@@ -3,6 +3,7 @@ using System;
 using APIBanco.Domain.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace APIBanco.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240324183746_MergeMain")]
+    partial class MergeMain
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -30,7 +33,7 @@ namespace APIBanco.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("CreditCardId")
+                    b.Property<int>("CreditCardId")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("TransactionDate")
@@ -294,7 +297,9 @@ namespace APIBanco.Migrations
                 {
                     b.HasOne("APIBanco.Domain.Models.CreditCard", "CreditCard")
                         .WithMany("CardTransactions")
-                        .HasForeignKey("CreditCardId");
+                        .HasForeignKey("CreditCardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("CreditCard");
                 });
