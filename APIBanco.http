@@ -1,6 +1,29 @@
 @APIBanco_HostAddress = http://localhost:5260
 
-GET {{APIBanco_HostAddress}}/weatherforecast/
+GET {{APIBanco_HostAddress}}/api/clients/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjIiLCJDcGYiOiI1NjE3Mzk2NzYwOSIsInN1YiI6IjIyLzAzLzIwMjQgMDA6MDA6MDAiLCJlbWFpbCI6InVzZXI1NkBleGFtcGxlLmNvbSIsImp0aSI6ImZjYWQxNGU5LTBjYjItNDUxYy1iNmUwLWVhNDA3NGFhZDE3ZCIsIm5iZiI6MTcxMTIyODY3NiwiZXhwIjoxNzExMjMyMjc2LCJpYXQiOjE3MTEyMjg2NzZ9.PfzpWrc1mSNdbpZponiySVzxMUNoWKhXXJQf1PvG6M4
 Accept: application/json
+
+###
+
+POST {{APIBanco_HostAddress}}/api/clients/login
+Accept: application/json
+content-type: application/json
+
+{
+  "cpf": "98242755858",
+  "password": "Password1234@"
+}
+
+###
+
+POST {{APIBanco_HostAddress}}/api/clients/login
+Accept: application/json
+content-type: application/json
+
+{
+  "cpf": "56173967609",
+  "password": "Password1234@"
+}
 
 ###
