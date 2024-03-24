@@ -5,7 +5,7 @@ namespace APIBanco.Domain.Dtos;
 public class ClientLoginRequestDto
 {
     [Required]
-    public ulong Cpf { get; set; }
+    public string Cpf { get; set; } = null!;
     [Required]
     public string Password { get; set; } = null!;
 }

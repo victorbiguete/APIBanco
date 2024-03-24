@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace APIBanco.Domain.Dtos;
 
-public class ClientRequestNoCpfDto
+public class ClientRequestUpdateDto
 {
     [Required]
     [RegularExpression(@"^[a-zA-Z]+$")]

@@ -1,6 +1,6 @@
-namespace APIBanco.Domain.Models;
+namespace APIBanco.Domain.Models.ApiTaskResponses;
 
-public class ApiTaskLoginTokenResponse : IApiTaskResult
+public class ApiTaskLoginResponse : IApiTaskResult
 {
     public bool Success { get; set; } = true;
     public string AuthenticationType { get; set; } = "Jwt Bearer";

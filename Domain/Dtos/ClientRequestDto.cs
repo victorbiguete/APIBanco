@@ -6,11 +6,10 @@ namespace APIBanco.Domain.Dtos;
 public class ClientRequestDto
 {
     [Required]
-    [RegularExpression(pattern: @"^[0-9]+$")]
-    public ulong Cpf { get; set; }
+    [RegularExpression(pattern: @"^[0-9]{11}$")]
+    public string Cpf { get; set; } = null!;
 
     [Required]
-    [RegularExpression(pattern: @"^[a-zA-Z]+$")]
     public string Name { get; set; } = null!;
 
     [Required]

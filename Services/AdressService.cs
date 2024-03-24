@@ -1,9 +1,6 @@
-using Microsoft.Extensions.Options;
-
-using APIBanco.Domain.Models;
 using APIBanco.Domain.Contexts;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
+using APIBanco.Domain.Models.DbContext;
 
 namespace APIBanco.Services;
 
@@ -33,7 +30,7 @@ public class AdressService
         return response;
     }
 
-    public async Task<Adress> GetByCpfAsync(ulong cpf)
+    public async Task<Adress> GetByCpfAsync(string cpf)
     {
         Adress? response = await _dbContext.Adresses.AsQueryable().Where(predicate: x => x.Cpf == cpf).FirstOrDefaultAsync();
 

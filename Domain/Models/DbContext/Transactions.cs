@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using APIBanco.Domain.Enums;
 
-namespace APIBanco.Domain.Models;
+namespace APIBanco.Domain.Models.DbContext;
 
 public class Transactions
 {
@@ -9,18 +9,20 @@ public class Transactions
     [Required]
     public int Id { get; set; }
     [Required]
-    public ulong Cpf { get; set; }
-    public string? Description { get; set; }
+    public string Cpf { get; set; } = null!;
+    [Required]
     public decimal Value { get; set; }
-    public DateTime Date { get; set; }
+    [Required]
     public TransactionType Type { get; set; }
+    public DateTime Date { get; set; }
+    public string? Description { get; set; }
 
     public int? BankAccountId { get; set; }
     public virtual BankAccount BankAccount { get; set; } = null!;
 
     public Transactions() { }
 
-    public Transactions(ulong cpf, string description, decimal value, TransactionType type)
+    public Transactions(string cpf, string description, decimal value, TransactionType type)
     {
         this.Cpf = cpf;
         this.Description = description;

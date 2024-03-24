@@ -2,6 +2,7 @@ using AutoMapper;
 
 using APIBanco.Domain.Models;
 using APIBanco.Domain.Dtos;
+using APIBanco.Domain.Models.DbContext;
 
 namespace APIBanco.Domain.Profiles;
 
@@ -14,7 +15,7 @@ public class ClientProfile : Profile
         {
             dest.Adress.Cpf = src.Cpf;
         });
-        CreateMap<Client, ClientRequestNoCpfDto>();
+        CreateMap<Client, ClientRequestUpdateDto>();
     }
 
 }

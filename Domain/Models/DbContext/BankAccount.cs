@@ -1,18 +1,20 @@
 using System.ComponentModel.DataAnnotations;
 using APIBanco.Domain.Enums;
-using Microsoft.AspNetCore.Mvc.ApplicationModels;
 
-namespace APIBanco.Domain.Models;
+namespace APIBanco.Domain.Models.DbContext;
 
 public class BankAccount
 {
     [Key]
     [Required]
     public int Id { get; set; }
-    public ulong Cpf { get; set; }
+    [Required]
+    public string Cpf { get; set; } = null!;
+    [Required]
     public decimal Balance { get; set; } = 0;
-    public virtual List<Transactions> Transactions { get; set; } = new List<Transactions>();
+    [Required]
     public AccountStatus Status { get; set; } = AccountStatus.Active;
+    public virtual List<Transactions> Transactions { get; set; } = new List<Transactions>();
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
@@ -22,10 +24,10 @@ public class BankAccount
     public void StatusCheck()
     {
         if (this.Status == AccountStatus.Blocked)
-            throw new Exception(message: "Account Blocked.");
+            throw new Exception(message: "Account Blocked. Please contact support for more information.");
 
         if (this.Status == AccountStatus.Inactive)
-            throw new Exception(message: "Account Inactive.");
+            throw new Exception(message: "Account Inactive. Please contact support.");
 
         if (this.Status == AccountStatus.Closed)
             throw new Exception(message: "Account Closed.");
