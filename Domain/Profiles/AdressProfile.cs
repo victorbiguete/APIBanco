@@ -10,7 +10,13 @@ public class AdressProfile : Profile
 {
     public AdressProfile()
     {
-        CreateMap<Adress, AdressResponseDto>().ReverseMap();
-        CreateMap<AdressRequestDto, Adress>().ReverseMap();
+        CreateMap<Adress, AdressResponseDto>().AfterMap((src, dest) =>
+        {
+            dest.State = src.UF;
+        });
+        CreateMap<AdressRequestDto, Adress>().AfterMap((src, dest) =>
+        {
+            dest.UF = src.State;
+        });
     }
 }

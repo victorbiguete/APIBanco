@@ -10,6 +10,7 @@ using System.Data.Entity.Infrastructure;
 using APIBanco.Domain.Models.DbContext;
 using APIBanco.Domain.Models.ApiTaskResponses;
 using APIBanco.Domain.Models.Exceptions;
+using Microsoft.AspNetCore.HttpLogging;
 
 namespace APIBanco.Controller;
 
@@ -270,5 +271,14 @@ public class ClientsController : ControllerBase
                 Erros = new List<string> { e.Message }
             });
         }
+    }
+
+    [HttpGet("istokenvalid")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(statusCode: StatusCodes.Status200OK)]
+    public IActionResult IsTokenValid()
+    {
+        return Ok();
     }
 }

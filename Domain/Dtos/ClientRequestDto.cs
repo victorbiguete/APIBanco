@@ -10,7 +10,6 @@ public class ClientRequestDto
     public string Cpf { get; set; } = null!;
 
     [Required]
-    [RegularExpression(pattern: @"^[a-zA-Z]{5,}$")]
     public string Name { get; set; } = null!;
 
     [Required]
