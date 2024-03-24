@@ -1,5 +1,4 @@
 ﻿using APIBanco.Domain.Contexts;
-using APIBanco.Security;
 using Microsoft.AspNetCore.Mvc;
 
 namespace APIBanco.Controllers

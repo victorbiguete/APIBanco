@@ -27,19 +27,6 @@ public class BankAccountController : ControllerBase
         _mapper = mapper;
     }
 
-    /// <summary>
-    /// Retrieves bank accounts based on provided parameters.
-    /// If no parameters are provided, it retrieves all bank accounts.
-    /// If 'id' is provided, it retrieves a specific bank account by id.
-    /// If 'cpf' is provided, it retrieves a specific bank account by cpf.
-    /// </summary>
-    /// <param name="id">The id of the bank account.</param>
-    /// <param name="cpf">The cpf of the bank account owner.</param>
-    /// <returns>A collection of BankAccountResponseDto objects representing the bank accounts.</returns>
-    /// <response code="200">Success. Returns a collection of BankAccountResponseDto objects.</response>
-    /// <response code="401">Unauthorized. The user is not authenticated.</response>
-    /// <response code="404">Not found. The bank account was not found.</response>
-    /// <response code="400">Bad request. There was an error in the request.</response>
     [HttpGet]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
@@ -93,17 +80,6 @@ public class BankAccountController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Updates the status of a bank account.
-    /// </summary>
-    /// <param name="AcountStatus">The new status of the bank account.</param>
-    /// <param name="id">The id of the bank account.</param>
-    /// <returns>An Accepted result with the updated bank account in the response body, or a NotFound or BadRequest result.</returns>
-    /// <response code="401">Unauthorized. The user is not authenticated.</response>
-    /// <response code="403">Forbidden</response>
-    /// <response code="202">Accepted. The bank account status was updated.</response>
-    /// <response code="404">Not found. The bank account was not found.</response>
-    /// <response code="400">Bad request. There was an error in the request.</response>
     [HttpPatch(template: "{id}")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]

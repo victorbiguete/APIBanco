@@ -27,16 +27,6 @@ public class AdressController : ControllerBase
         _mapper = mapper;
     }
 
-    /// <summary>
-    /// HTTP GET endpoint to retrieve adresses.
-    /// </summary>
-    /// <param name="id">ID of the adress.</param>
-    /// <param name="cpf">CPF of the owner of the adress.</param>
-    /// <returns>List of AdressResponseDto objects or a single AdressResponseDto object.</returns>
-    /// <response code="401">Unauthorized</response>
-    /// <response code="200">OK</response>
-    /// <response code="400">Bad Request</response>
-    /// <response code="404">Not Found</response>
     [HttpGet]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
@@ -91,17 +81,6 @@ public class AdressController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// HTTP PUT endpoint to update an adress.
-    /// </summary>
-    /// <param name="id">ID of the adress to update.</param>
-    /// <param name="adress">AdressRequestDto object with the new adress data.</param>
-    /// <returns>AdressResponseDto object with the updated adress data.</returns>
-    /// <response code="401">Unauthorized</response>
-    /// <response code="403">Forbidden</response>
-    /// <response code="202">Accepted</response>
-    /// <response code="400">Bad Request</response>
-    /// <response code="404">Not Found</response>
     [HttpPut(template: "{id}")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]

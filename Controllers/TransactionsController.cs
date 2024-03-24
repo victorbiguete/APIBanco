@@ -29,19 +29,6 @@ public class TransactionsController : ControllerBase
         _mapper = mapper;
     }
 
-    /// <summary>
-    /// HTTP GET endpoint to retrieve transactions.
-    /// </summary>
-    /// <param name="Cpf">CPF of the client.</param>
-    /// <param name="Id">ID of the transaction.</param>
-    /// <param name="LessThenDays">Number of days in the past to retrieve transactions.</param>
-    /// <param name="GreaterThenDays">Number of days in the past to retrieve transactions.</param>
-    /// <returns>List of TransactionResponseDto objects.</returns>
-    /// <response code="401">Unauthorized</response>
-    /// <response code="200">OK</response>
-    /// <response code="204">No Content</response>
-    /// <response code="400">Bad Request</response>
-    /// <response code="404">Not Found</response>
     [HttpGet]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
@@ -187,16 +174,6 @@ public class TransactionsController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// This is a HTTP POST method that allows a client to make a deposit into their account.
-    /// </summary>
-    /// <param name="transaction">The transaction details.</param>
-    /// <param name="cpf">The customer's CPF.</param>
-    /// <returns>The created transaction, or a BadRequest or NotFound response.</returns>
-    /// <response code="401">Unauthorized request.</response>
-    /// <response code="201">The transaction was created successfully.</response>
-    /// <response code="400">The transaction was not valid.</response>
-    /// <response code="404">The customer's account was not found.</response>
     [HttpPost(template: "deposit/{cpf}")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
@@ -247,18 +224,6 @@ public class TransactionsController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// This is a HTTP POST method that allows a client to make a withdrawal
-    /// from a bank account.
-    /// </summary>
-    /// <param name="transaction">The transaction details.</param>
-    /// <param name="cpf">The customer's CPF.</param>
-    /// <returns>A created transaction.</returns>
-    /// <response code="401">Unauthorized.</response>
-    /// <response code="403">Forbidden</response>
-    /// <response code="201">The transaction was created successfully.</response>
-    /// <response code="400">Invalid request.</response>
-    /// <response code="404">Resource not found.</response>
     [HttpPost(template: "withdraw/{cpf}")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
@@ -323,19 +288,6 @@ public class TransactionsController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// This is a HTTP POST method that allows a client to make a transfer
-    /// from one bank account to another.
-    /// </summary>
-    /// <param name="transaction">The transaction details.</param>
-    /// <param name="cpf">The customer's CPF.</param>
-    /// <param name="cpftarget">The target customer's CPF.</param>
-    /// <returns>A created transaction.</returns>
-    /// <response code="401">Unauthorized.</response>
-    /// <response code="403">Forbidden</response>
-    /// <response code="201">The transaction was created successfully.</response>
-    /// <response code="400">Invalid request.</response>
-    /// <response code="404">Resource not found.</response>
     [HttpPost(template: "transfer/{cpf}/{cpftarget}")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
