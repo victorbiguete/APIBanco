@@ -10,7 +10,6 @@ using System.Data.Entity.Infrastructure;
 using APIBanco.Domain.Models.DbContext;
 using APIBanco.Domain.Models.ApiTaskResponses;
 using APIBanco.Domain.Models.Exceptions;
-using Microsoft.AspNetCore.HttpLogging;
 
 namespace APIBanco.Controller;
 
@@ -30,16 +29,6 @@ public class ClientsController : ControllerBase
         _mapper = mapper;
     }
 
-    /// <summary>
-    /// HTTP GET endpoint to retrieve clients.
-    /// </summary>
-    /// <param name="id">ID of the client.</param>
-    /// <param name="cpf">CPF of the client.</param>
-    /// <returns>List of ClientResponseDto objects.</returns>
-    /// <response code="401">Unauthorized</response>
-    /// <response code="200">OK</response>
-    /// <response code="400">Bad Request</response>
-    /// <response code="404">Not Found</response>
     [HttpGet]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
@@ -95,17 +84,6 @@ public class ClientsController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// HTTP PUT endpoint to update a client by its ID.
-    /// </summary>
-    /// <param name="id">ID of the client to update.</param>
-    /// <param name="client">Client data to update.</param>
-    /// <returns>Updated client data.</returns>
-    /// <response code="401">Unauthorized</response>
-    /// <response code="403">Forbidden</response>
-    /// <response code="202">Accepted</response>
-    /// <response code="400">Bad Request</response>
-    /// <response code="404">Not Found</response>
     [HttpPut(template: "{id}")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [ProducesResponseType(statusCode: StatusCodes.Status401Unauthorized)]
@@ -170,14 +148,6 @@ public class ClientsController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Registers a new client.
-    /// </summary>
-    /// <param name="client">The client request data.</param>
-    /// <returns>The created client response data and a token.</returns>
-    /// <response code="201">Created</response>
-    /// <response code="400">Bad Request</response>
-    /// <response code="409">Conflict</response>
     [HttpPost("register")]
     [ProducesResponseType(type: typeof(ApiTaskRegisterResponse), statusCode: StatusCodes.Status201Created)]
     [ProducesResponseType(type: typeof(ApiTaskErrors), statusCode: StatusCodes.Status400BadRequest)]
@@ -228,14 +198,6 @@ public class ClientsController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// HTTP POST endpoint to login a client.
-    /// </summary>
-    /// <param name="login">The client login data.</param>
-    /// <returns>A token to be used in subsequent requests.</returns>
-    /// <response code="200">OK</response>
-    /// <response code="400">Bad Request</response>
-    /// <response code="401">Unauthorized</response>
     [HttpPost(template: "login")]
     [ProducesResponseType(type: typeof(ApiTaskLoginResponse), statusCode: StatusCodes.Status202Accepted)]
     [ProducesResponseType(type: typeof(ApiTaskErrors), statusCode: StatusCodes.Status400BadRequest)]

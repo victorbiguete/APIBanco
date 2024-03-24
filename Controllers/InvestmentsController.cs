@@ -7,8 +7,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using APIBanco.Domain.Models.DbContext;
 using APIBanco.Domain.Models.ApiTaskResponses;
-using APIBanco.Domain.Models.Exceptions;
-using APIBanco.Domain.Enums;
 
 namespace APIBanco.Controllers;
 
