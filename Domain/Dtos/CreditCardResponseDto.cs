@@ -8,5 +8,6 @@
         public DateTime ExpiryDate { get; set; }
         public decimal TotalLimit { get; set; }
         public decimal UsedLimit { get; set; }
+
     }
 }
