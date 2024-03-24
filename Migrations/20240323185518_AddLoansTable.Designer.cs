@@ -3,6 +3,7 @@ using System;
 using APIBanco.Domain.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace APIBanco.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240323185518_AddLoansTable")]
+    partial class AddLoansTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -34,9 +37,8 @@ namespace APIBanco.Migrations
                     b.Property<int?>("ClientId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Cpf")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                    b.Property<ulong>("Cpf")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
@@ -82,9 +84,8 @@ namespace APIBanco.Migrations
                     b.Property<int?>("ClientId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Cpf")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                    b.Property<ulong>("Cpf")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
@@ -103,28 +104,6 @@ namespace APIBanco.Migrations
                     b.ToTable("BankAccounts");
                 });
 
-            modelBuilder.Entity("APIBanco.Domain.Models.CardTransaction", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("CreditCardId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("TransactionDate")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreditCardId");
-
-                    b.ToTable("CardTransactions");
-                });
-
             modelBuilder.Entity("APIBanco.Domain.Models.Client", b =>
                 {
                     b.Property<int>("Id")
@@ -134,10 +113,8 @@ namespace APIBanco.Migrations
                     b.Property<DateTime>("BornDate")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Cpf")
-                        .IsRequired()
-                        .HasMaxLength(11)
-                        .HasColumnType("TEXT");
+                    b.Property<ulong>("Cpf")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
@@ -163,40 +140,7 @@ namespace APIBanco.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasAlternateKey("Cpf");
-
                     b.ToTable("Clients");
-                });
-
-            modelBuilder.Entity("APIBanco.Domain.Models.CreditCard", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("CVV")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<ulong>("CardNumber")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("ExpiryDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("HolderName")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("TotalLimit")
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("UsedLimit")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("CreditCards");
                 });
 
             modelBuilder.Entity("APIBanco.Domain.Models.Insurance", b =>
@@ -267,9 +211,8 @@ namespace APIBanco.Migrations
                     b.Property<int?>("BankAccountId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Cpf")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                    b.Property<ulong>("Cpf")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("TEXT");
@@ -308,17 +251,6 @@ namespace APIBanco.Migrations
                     b.Navigation("Client");
                 });
 
-            modelBuilder.Entity("APIBanco.Domain.Models.CardTransaction", b =>
-                {
-                    b.HasOne("APIBanco.Domain.Models.CreditCard", "CreditCard")
-                        .WithMany("CardTransactions")
-                        .HasForeignKey("CreditCardId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("CreditCard");
-                });
-
             modelBuilder.Entity("APIBanco.Domain.Models.Transactions", b =>
                 {
                     b.HasOne("APIBanco.Domain.Models.BankAccount", "BankAccount")
@@ -340,11 +272,6 @@ namespace APIBanco.Migrations
 
                     b.Navigation("BankAccount")
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("APIBanco.Domain.Models.CreditCard", b =>
-                {
-                    b.Navigation("CardTransactions");
                 });
 #pragma warning restore 612, 618
         }

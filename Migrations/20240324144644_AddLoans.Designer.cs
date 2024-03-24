@@ -3,6 +3,7 @@ using System;
 using APIBanco.Domain.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace APIBanco.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240324144644_AddLoans")]
+    partial class AddLoans
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -34,9 +37,8 @@ namespace APIBanco.Migrations
                     b.Property<int?>("ClientId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Cpf")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                    b.Property<ulong>("Cpf")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
@@ -82,9 +84,8 @@ namespace APIBanco.Migrations
                     b.Property<int?>("ClientId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Cpf")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                    b.Property<ulong>("Cpf")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
@@ -134,10 +135,8 @@ namespace APIBanco.Migrations
                     b.Property<DateTime>("BornDate")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("Cpf")
-                        .IsRequired()
-                        .HasMaxLength(11)
-                        .HasColumnType("TEXT");
+                    b.Property<ulong>("Cpf")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("TEXT");
@@ -162,8 +161,6 @@ namespace APIBanco.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
-
-                    b.HasAlternateKey("Cpf");
 
                     b.ToTable("Clients");
                 });
@@ -267,9 +264,8 @@ namespace APIBanco.Migrations
                     b.Property<int?>("BankAccountId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Cpf")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
+                    b.Property<ulong>("Cpf")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("TEXT");
