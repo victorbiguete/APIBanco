@@ -11,6 +11,9 @@ public class AppDbContext : DbContext
     public DbSet<Transactions> Transactions { get; set; }
     public DbSet<Loan> Loans { get; set; } 
     public DbSet<Insurance> Insurances { get; set; }
+    public DbSet<CreditCard> CreditCards { get; set; }
+    public DbSet<CardTransaction> CardTransactions { get; set; }
+
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -56,6 +59,16 @@ public class AppDbContext : DbContext
         builder.Entity<Insurance>().Property(x => x.StartDate).IsRequired();
         builder.Entity<Insurance>().Property(x => x.EndDate).IsRequired();
         builder.Entity<Insurance>().Property(x => x.Premium).IsRequired();
+
+        builder.Entity<CreditCard>().HasKey(x => x.Id);
+        builder.Entity<CreditCard>().Property(x => x.Id).ValueGeneratedOnAdd();
+        builder.Entity<CreditCard>().Property(x => x.CardNumber).IsRequired();
+        builder.Entity<CreditCard>().Property(x => x.HolderName).IsRequired();
+        builder.Entity<CreditCard>().Property(x => x.ExpiryDate).IsRequired();
+        builder.Entity<CreditCard>().Property(x => x.CVV).IsRequired();
+        builder.Entity<CreditCard>().Property(x => x.TotalLimit).IsRequired();
+        builder.Entity<CreditCard>().Property(x => x.UsedLimit).IsRequired();
+        builder.Entity<CreditCard>().HasMany(x => x.CardTransactions).WithOne(x => x.CreditCard).HasForeignKey(x => x.CreditCardId);
     }
 }
 // builder.Entity<Category>().ToTable("Categories");

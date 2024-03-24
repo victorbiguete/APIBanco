@@ -14,11 +14,16 @@ namespace APIBanco.Controllers
     {
         private readonly LoanService _loanService;
         private readonly InsuranceService _insuranceService;
+        private readonly CreditCardService _creditCardService;
+        private readonly CardTransactionService _cardTransactionService;
 
-        public ProductController(LoanService loanService, InsuranceService insuranceService)
+
+        public ProductController(LoanService loanService, InsuranceService insuranceService, CreditCardService creditCardService, CardTransactionService cardTransactionService)
         {
             _loanService = loanService;
             _insuranceService = insuranceService;
+            _creditCardService = creditCardService;
+            _cardTransactionService = cardTransactionService;
         }
 
         [HttpPost("loan")]
@@ -154,6 +159,124 @@ namespace APIBanco.Controllers
             {
                 await _insuranceService.DeleteInsuranceAsync(id);
                 return Ok($"Insurance with ID {id} deleted successfully.");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+        }
+        [HttpPost("creditcard")]
+        public async Task<IActionResult> CreateCreditCard(CreditCardRequestDto creditCardDto)
+        {
+            try
+            {
+                // Converta o número do cartão para ulong
+                if (!ulong.TryParse(creditCardDto.CardNumber, out ulong cardNumber))
+                {
+                    return BadRequest("Número do cartão de crédito inválido.");
+                }
+
+                // Crie um objeto CreditCard com os dados do DTO
+                var creditCard = new CreditCard
+                {
+                    CardNumber = cardNumber,
+                    HolderName = creditCardDto.HolderName,
+                    ExpiryDate = creditCardDto.ExpiryDate,
+                    CVV = creditCardDto.CVV,
+                    TotalLimit = creditCardDto.TotalLimit,
+                    UsedLimit = 0
+                };
+
+                // Chame o serviço para criar o cartão de crédito
+                var createdCreditCard = await _creditCardService.CreateCreditCardAsync(creditCard);
+
+
+                return Ok(createdCreditCard);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Erro ao criar o cartão de crédito: {ex.Message}");
+            }
+        }
+
+        [HttpGet("creditcard")]
+        public async Task<IActionResult> GetAllCreditCards()
+        {
+            var creditCards = await _creditCardService.GetAllCreditCardsAsync();
+            return Ok(creditCards);
+        }
+
+        [HttpGet("creditcard/{id}")]
+        public async Task<IActionResult> GetCreditCardById(int id)
+        {
+            var creditCard = await _creditCardService.GetCreditCardByIdAsync(id);
+            if (creditCard == null)
+            {
+                return NotFound($"Credit card with ID {id} not found.");
+            }
+            return Ok(creditCard);
+        }
+
+        [HttpDelete("creditcard/{id}")]
+        public async Task<IActionResult> DeleteCreditCard(int id)
+        {
+            try
+            {
+                await _creditCardService.DeleteCreditCardAsync(id);
+                return Ok($"Credit card with ID {id} deleted successfully.");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+
+        }
+        [HttpPost("creditcard/transaction")]
+        public async Task<IActionResult> MakeCreditCardTransaction(CardTransactionRequestDto transactionDto)
+        {
+            try
+            {
+                var success = await _cardTransactionService.MakeTransactionAsync(transactionDto.CreditCardId, transactionDto.Amount);
+                if (success)
+                {
+                    return Ok("Credit card transaction successful.");
+                }
+                else
+                {
+                    return BadRequest("Credit card transaction failed. Insufficient credit limit.");
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred while processing the credit card transaction: {ex.Message}");
+            }
+        }
+
+        [HttpGet("creditcard/transaction")]
+        public async Task<IActionResult> GetAllCreditCardTransactions()
+        {
+            var transactions = await _cardTransactionService.GetAllTransactionsAsync();
+            return Ok(transactions);
+        }
+
+        [HttpGet("creditcard/transaction/{id}")]
+        public async Task<IActionResult> GetCreditCardTransactionById(int id)
+        {
+            var transaction = await _cardTransactionService.GetTransactionByIdAsync(id);
+            if (transaction == null)
+            {
+                return NotFound($"Credit card transaction with ID {id} not found.");
+            }
+            return Ok(transaction);
+        }
+
+        [HttpDelete("creditcard/transaction/{id}")]
+        public async Task<IActionResult> DeleteCreditCardTransaction(int id)
+        {
+            try
+            {
+                await _cardTransactionService.DeleteTransactionAsync(id);
+                return Ok($"Credit card transaction with ID {id} deleted successfully.");
             }
             catch (KeyNotFoundException ex)
             {
